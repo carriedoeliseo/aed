@@ -1,0 +1,40 @@
+\documentclass[10pt,a4paper]{article}
+
+\input{AEDmacros}
+\usepackage{caratula} % Version modificada para usar las macros de algo1 de ~> https://github.com/bcardiff/dc-tex
+
+
+\titulo{Descripci\'on del tp}
+\subtitulo{Subtítulo del tp}
+
+\fecha{\today}
+
+\materia{Materia de la carrera}
+\grupo{Grupo 42}
+
+\integrante{Apellido, Nombre1}{001/01}{email1@dominio.com}
+\integrante{Apellido, Nombre2}{002/01}{email2@dominio.com}
+\integrante{Apellido, Nombre3}{003/01}{email3@dominio.com}
+\integrante{Apellido, Nombre4}{004/01}{email4@dominio.com}
+% Pongan cuantos integrantes quieran
+
+% Declaramos donde van a estar las figuras
+% No es obligatorio, pero suele ser comodo
+\graphicspath{{../static/}}
+
+\begin{document}
+
+\maketitle
+
+\section{Especificación}
+\subsection{individuoDecideSiCooperarONo}
+
+\begin{proc}
+{individuoDecideSiCooperarONo}
+{\in individuo: \nat, \In recursos: \TLista{\float}, \Inout cooperan}
+\requiere{hola}
+\asegura{dos}
+
+\end{proc}
+
+\end{document}

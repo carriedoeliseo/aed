@@ -1,0 +1,391 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[paper=a4paper, hmargin=1.5cm, bottom=1.5cm, top=3.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{xspace}
+\usepackage{xargs}
+\usepackage{ifthen}
+\usepackage{aed2-tad,aed2-symb,aed2-itef,aed2-diseno}
+\usepackage{algorithmicx, algpseudocode, algorithm}
+
+\begin{document}
+
+\section{Módulo Diccionario Lineal($\kappa$, $\sigma$)}
+
+El módulo Diccionario Lineal provee un diccionario básico en el que se puede definir, borrar, y testear si una clave está definida en tiempo lineal.  Cuando ya se sabe que la clave a definir no esta definida en el diccionario, la definición se puede hacer en tiempo $O(1)$.
+
+En cuanto al recorrido de los elementos, se provee un iterador bidireccional que permite recorrer y eliminar los elementos de $d$ como si fuera una secuencia de pares $\kappa,\sigma$.
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(k)$ al costo de copiar el elemento $k \in \kappa \cup \sigma$ y $equal(k_1, k_2)$ al costo de evaluar si dos elementos $k_1, k_2 \in \kappa$ son iguales (i.e., $copy$ y $equal$ son funciones de $\kappa \cup \sigma$ y $\kappa \times \kappa$ en $\mathbb{N}$, respectivamente).\footnote{Nótese que este es un abuso de notación, ya que no estamos describiendo $copy$ y $equal$ en función del tamaño de $k$.  A la hora de usarlo, habrá que realizar la traducción.}
+
+\begin{Interfaz}
+
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}}$\kappa,\sigma$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{k_1}{$\kappa$}, \In{k_2}{$\kappa$}}{bool}
+    {$res \igobs (k_1 = k_2)$}
+    [$\Theta(equal(k_1, k_2))$]
+    [función de igualdad de $\kappa$'s]
+  }%
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{k}{$\kappa$}}{$\kappa$}
+    {$res \igobs k$}
+    [$\Theta(copy(k))$]
+    [función de copia de $\kappa$'s]
+  }\\[2ex]
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{s}{$\sigma$}}{$\sigma$}
+    {$res \igobs s$}
+    [$\Theta(copy(s))$]
+    [función de copia de $\sigma$'s]
+  }
+
+  \textbf{se explica con}: \tadNombre{Diccionario$(\kappa, \sigma)$}
+
+  \textbf{géneros}: \TipoVariable{dicc$(\kappa, \sigma)$}.
+
+  \Titulo{Operaciones básicas de diccionario}
+
+  \InterfazFuncion{Vacío}{}{dicc$(\kappa,\sigma)$}%
+  {$res$ $\igobs$ vacio}%
+  [$\Theta(1)$]
+  [genera un diccionario vacío.]
+
+  \InterfazFuncion{Definir}{\Inout{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}, \In{s}{$\sigma$}}{itDicc($\kappa, \sigma$)}
+  [$d \igobs d_0$]
+  {$d$ $\igobs$ definir($d, k, s$) $\land$ haySiguiente($res$) $\land_L$ Siguiente($res$) $=$ $\langle k,s\rangle$ $\land$ alias(esPermutación(SecuSuby($res$), $d$))}
+  [$\displaystyle\Theta\left(\sum_{k' \in K}equal(k,k') + copy(k) + copy(s)\right)$, donde $K$ $=$ claves($d$)]
+  [define la clave $k$ con el significado $s$ en el diccionario.  Retorna un iterador al elemento recién agregado.]
+  [los elementos $k$ y $s$ se definen por copia.  El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}. Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique el $d$ sin utilizar las funciones del iterador.]
+
+
+  \InterfazFuncion{DefinirRapido}{\Inout{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}, \In{s}{$\sigma$}}{itDicc($\kappa, \sigma$)}
+  [$d \igobs d_0$ $\land$ $\lnot$definido?($d$, $k$)]
+  {$d$ $\igobs$ definir($d, k, s$) $\land$ haySiguiente($res$) $\land_L$ Siguiente($res$) $=$ $\langle k,s\rangle$ $\land$ esPermutación(SecuSuby($res$), $d$)}
+  [$\Theta(copy(k) + copy(s))$]
+  [define la clave $k$ $\not\in$ claves($d$) con el significado $s$ en el diccionario. Retorna un iterador al elemento recién agregado.]
+  [los elementos $k$ y $s$ se definen por copia. El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}. Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique el $d$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{Definido?}{\In{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}}{bool}
+  {$res$ $\igobs$ def?($d$, $k$)}
+  [$\Theta(\sum_{k' \in K}equal(k,k'))$, donde $K$ $=$ claves($d$)]
+  [devuelve \texttt{true} si y sólo $k$ está definido en el diccionario.]
+
+  \InterfazFuncion{Significado}{\In{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}}{$\sigma$}
+  [def?($d$, $k$)]
+  {alias($res$ $\igobs$ Significado($d$, $k$))}
+  [$\Theta(\sum_{k' \in K}equal(k,k'))$, donde $K$ $=$ claves($d$)]
+  [devuelve el significado de la clave $k$ en $d$.]
+  [$res$ es modificable si y sólo si $d$ es modificable.]
+
+  \InterfazFuncion{Borrar}{\Inout{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}}{}
+  [$d = d_0$ $\land$ def?($d$, $k$)]
+  {$d$ $\igobs$ borrar($d_0, k$)}
+  [$\Theta(\sum_{k' \in K}equal(k,k'))$, donde $K$ $=$ claves($d$)]
+  [elimina la clave $k$ y su significado de $d$.]
+
+  \InterfazFuncion{\#Claves}{\In{d}{dicc($\kappa,\sigma$)}}{nat}
+  {$res$ $\igobs$ \#claves($d$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de claves del diccionario.]
+
+  \InterfazFuncion{Copiar}{\In{d}{dicc($\kappa,\sigma$)}}{dicc($\kappa,\sigma$)}
+  {$res \igobs d$}
+  [$\displaystyle\Theta\left(\sum_{k \in K}\left(copy(k) + copy(\text{significado}(k,d))\right)\right)$, donde $K$ $=$ claves($d$)]
+  [genera una copia nueva del diccionario.]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{d_1}{dicc($\kappa,\sigma$)}, \In{d_2}{dicc($\kappa,\sigma$)}}{bool}
+  {$res \igobs c_1 = c_2$}
+  [$\displaystyle O\left(\sum_{\substack{k_1 \in K_1\\k_2\in K_2}}equal(\langle k_1,s_1\rangle, \langle k_2, s_2 \rangle)\right)$, donde $K_i$ $=$ claves($d_i$) y $s_i$ $=$ significado($d_i, k_i$), $i \in \{1,2\}$.]
+  [compara $d_1$ y $d_2$ por igualdad, cuando $\sigma$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{s_1}{$\sigma$}, \In{s_2}{$\sigma$}}{bool}
+    {$res \igobs (s_1 = s_2)$}
+    [$\Theta(equal(s_1, s_2))$]
+    [función de igualdad de $\sigma$'s]
+  }}]
+
+
+\Titulo{Especificación de las operaciones auxiliares utilizadas en la interfaz}
+
+    \tadOperacion{esPermutacion?}{secu({tupla($\kappa,\sigma$)}),dicc({$\kappa,\sigma$)}}{bool}{}
+    \tadAxioma{esPermutacion?($s,d$)}{$d$ $=$ secuADicc($s$) $\land$ \#claves($d$) $=$ long($s$)}
+
+    ~
+
+    \tadOperacion{secuADicc}{secu({tupla($\kappa,\sigma$)})}{dicc($\kappa,\sigma$)}{}
+    \tadAxioma{secuADicc($s$)}{\IF vacia?($s$) THEN vacio ELSE definir($\Pi_1$(prim($s$)), $\Pi_2$(prim($s$)), secuADict(fin($s$))) FI}
+
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  \Titulo{Representación del diccionario}
+
+  El diccionario se representa con dos listas enlazadas, una conteniendo las
+    claves y otras los significados. Ambas listas deben tener igual largo ya
+    que las claves y los significados se aparean por posición.
+
+  \begin{Estructura}{dicc$(\kappa,\sigma)$}[dic]
+    \begin{Tupla}[dic]%
+      \tupItem{claves}{lista($\kappa$)}%
+      \tupItem{significados}{lista($\sigma$)}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[dic][d]{\\
+      \textbf{sin claves repetidas:} \#claves(secuADicc($d$.claves)) $=$ long($d$.claves) $\land$  \\
+      long($d$.claves) = long($d$.significados)}
+
+  ~
+
+  \AbsFc[dicc]{dicc($\kappa,\sigma$)}[d]{
+      \IF vacía?($d$.claves) THEN vacío ELSE
+      definir(prim($d$).claves, prim($d$).significado, 
+              Abs((fin($d$.claves), fin($d$.significados))) FI}
+
+
+\end{Representacion}
+
+\begin{Algoritmos}
+
+\begin{algorithm}[H]{\textbf{iVacío}() $\to$ $res$ : dic}
+  \begin{algorithmic}[1]
+      \State $res \gets \langle$ secu::Vacia(), secu::Vacia() $\rangle$
+      \medskip
+      \Statex \underline{Complejidad:} $\Theta(1)$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iDefinir}(\Inout{d}{dic}, \In{k}{$\kappa$}, \In{s}{$\sigma$}) $\to$ $res$ : $itDicc$}
+\begin{algorithmic}
+    \If{la clave $k$ está en d.claves}
+        \State itC, itS $\gets$ buscar(d, k)
+        \State *itS $\gets$ s
+        \State $res \gets \langle$ itC, itS $\rangle$
+    \Else
+        $res \gets $DefinirRapido(d, k, s)
+    \EndIf
+    \Statex \underline{Complejidad:} $\Theta\left(\sum_{k' \in K}equal(k,k') + copy(k) + copy(s)\right)$
+    \Statex \underline{Justificación:} Se debe revisar si la clave está. Esto
+    toma $\O(n)$. Si la clave está definida, se recorren las listas hasta
+    encontrar la clave ($\mathcal{O}(n)$). Luego se reemplaza el significado
+    anterior por el nuevo ($\mathcal{O}(copy(\sigma))$). Si la clave no está,
+    se deben copiar clave y significado al final ($\mathcal{O}(copy(\kappa) +
+    copy(\sigma))$).
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iDefinirRapido}(\Inout{d}{dic}, \In{k}{$\kappa$}, \In{s}{$\sigma$}) $\to$ $res$ : $itDicc$}
+\begin{algorithmic}
+    \State itC $\gets$ d.claves.AgregarAdelante(k)
+    \State itS $\gets$ d.significados.AgregarAdelante(s)
+    \State res $\gets \langle$ itC, its $\rangle$
+    \Statex \underline{Complejidad:} $\Theta\left(copy(k) + copy(s)\right)$
+    \Statex \underline{Justificación:} La clave no está, solo
+    se deben copiar clave y significado al final de las
+    listas internas ($\mathcal{O}(copy(\kappa) + copy(\sigma))$).
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iDefinido?}(\Inout{d}{dic}, \In{k}{$\kappa$})
+    $\to$ $res$ : $bool$}
+\begin{algorithmic}
+    \State itC, itS $\gets$ buscar(d, k)
+    \State $res \gets$ (itC == d.claves.end())
+    \Statex \underline{Complejidad:} $\Theta(\sum_{k' \in K}equal(k,k'))$
+    \Statex \underline{Justificación:} Se recorre la lista de claves comparando
+    con la clave parámetro.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iSignificado}(\Inout{d}{dic}, \In{k}{$\kappa$})
+    $\to$ $res$ : $\sigma$}
+\begin{algorithmic}
+    \State itC, itS $\gets$ buscar(d, k)
+    \State $res \gets$ *itS
+    \Statex \underline{Complejidad:} $\Theta(\sum_{k' \in K}equal(k,k'))$
+    \Statex \underline{Justificación:} Se recorre la lista de claves comparando
+    con la clave parámetro. El significado se devuelve por referencia.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iBorrar}(\Inout{d}{dic}, \In{k}{$\kappa$})
+    $\to$ $res$ : $\sigma$}
+\begin{algorithmic}
+    \State itC, itS $\gets$ buscar(d, k)
+    \State d.claves.borrar(itC)
+    \State d.significado.borrar(itS)
+    \Statex \underline{Complejidad:} $\Theta(\sum_{k' \in K}equal(k,k'))$
+    \Statex \underline{Justificación:} Se recorre la lista de claves comparando
+    con la clave parámetro. El significado se devuelve por referencia.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iClaves}(\Inout{d}{dic}) $\to$ $res$ : $nat$}
+\begin{algorithmic}
+    \State $res \gets$ d.claves.longitud()
+    \Statex \underline{Complejidad:} Asume que la lista permite responder
+    cantidad de claves en $\mathcal{O}(1)$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iBuscar}(\Inout{d}{dic}, \In{k}{$\kappa$})
+    $\to$ $res$ : tupla($itLista(\kappa), itLista(\sigma))$}
+\begin{algorithmic}
+    \State itC $\gets$ d.claves.begin()
+    \State itS $\gets$ d.significado.begin()
+    \While{*itC != k}
+        \State ++itC
+        \State ++itS
+    \EndWhile
+    \State $res \gets \langle$ itC, itS $\rangle$
+    \Statex \underline{Complejidad:} $\Theta(\sum_{k' \in K}equal(k,k'))$
+    \Statex \underline{Justificación:} Se recorre la lista de claves comparando
+    con la clave parámetro. Se devuelven dos iteradores por copia. Se asume que
+    su copia es $\mathcal{O}(1)$.
+\end{algorithmic}
+\end{algorithm}
+  
+\end{Algoritmos}
+
+%% Iterador diccionario lineal %%
+\newpage
+
+\subsection{Iterador Diccionario Lineal}
+
+\begin{Interfaz}
+  
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}}$\kappa,\sigma$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{k_1}{$\kappa$}, \In{k_2}{$\kappa$}}{bool}
+    {$res \igobs (k_1 = k_2)$}
+    [$\Theta(equal(k_1, k_2))$]
+    [función de igualdad de $\kappa$'s]
+  }%
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{k}{$\kappa$}}{$\kappa$}
+    {$res \igobs k$}
+    [$\Theta(copy(k))$]
+    [función de copia de $\kappa$'s]
+  }\\[2ex]
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{s}{$\sigma$}}{$\sigma$}
+    {$res \igobs s$}
+    [$\Theta(copy(s))$]
+    [función de copia de $\sigma$'s]
+  }
+
+  \textbf{se explica con}: \tadNombre{secu$($tupla$(\kappa, \sigma))$}
+
+  \textbf{géneros}: \TipoVariable{itDicc($\kappa, \sigma$)}.
+
+  El iterador que presentamos permite recorrer el diccionario o hacer 
+    referencia a una tupla clave-significado dentro del diccionario. 
+    
+\InterfazFuncion{CrearIt}{\In{itC}{itLista($\kappa$)}, \In{itS}{itLista($\sigma$)}}
+    {itDicc($\kappa,\sigma$)}[itC e itS refieren al mismo diccionario y están
+    alineados en el mismo]{El iterador resultado genera la secuencia
+    clave-significado de los elementos restantes por ver.}
+  [$\Theta(1)$]
+  [Crea un iterador del diccionario. Este método solo puede ser utilizado por
+    el diccionario para generar un nuevo iterador.]
+
+  \InterfazFuncion{Desreferenciar(*)}{\In{it}{itDicc($\kappa,\sigma$)}}{tupla($\kappa, \sigma$)}
+  [El iterador no llegó al final]
+  {Devuelve la clave valor del diccionario por referencia.}
+  [$\Theta(1)$]
+  [devuelve el elemento al que apunta el iterador.]
+  [$res$.significado es modificable si y sólo si $it$ es modificable.  En cambio, $res$.clave no es modificable.]
+
+  \InterfazFuncion{Avanzar(++)}{\Inout{it}{itDicc($\kappa,\sigma$)}}{}
+  [El iterador no llegó al final.]
+  {El iterador apunta al siguiente elemento en el recorrido}
+  [$\Theta(1)$]
+  [avanza a la posición siguiente del iterador.]
+
+  \InterfazFuncion{Retroceder(--)}{\Inout{it}{itDicc($\kappa,\sigma$)}}{}
+  [El iterador no está al principio]
+  {El ierador apunta a la posición anterior en el recorrido}
+  [$\Theta(1)$]
+  [retrocede a la posición anterior del iterador.]
+
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  \Titulo{Representación del iterador}
+
+  El iterador del diccionario es un par de iteradores a las listas correspondientes. 
+
+  \begin{Estructura}{itDicc($\kappa$, $\sigma$)}[itDic]
+    \begin{Tupla}[itDic]%
+      \tupItem{clave}{itLista($\kappa$)}%
+      \tupItem{significado}{itLista($\sigma$)}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[itDic][it]{
+    \textbf{los iteradores apuntan al mismo diccionario} $\land$ \\
+    obtener *it.clave en el diccionario al que apuntan los iteradores es igual
+    a *it.significado
+  }
+
+  ~
+
+  \AbsFc[itDic]{secu(tupla($\kappa,\sigma$))}[s]{
+      s está vacía ssi itDic.clave llegó al final del recorrido $\land$ \\
+      prim(s) = $\langle$ *itDic.clave, *itDic.significado $\rangle$ $\land$\\
+      fin(s) = Abs($\langle$ ++itDic.clave, ++itDic.significado $\rangle$)
+  }
+\end{Representacion}
+
+\begin{Algoritmos}
+
+\begin{algorithm}[H]{\textbf{iCrearIt}(\In{itC}{itLista($\kappa$)},
+    \In{itS}{itLista($\sigma$)}) $\to$ $res$ : itDic}
+  \begin{algorithmic}[1]
+      \State $res \gets \langle$ itC, itS $\rangle$
+      \medskip
+      \Statex \underline{Complejidad:} $\Theta(1)$
+      \Statex \underline{Justificacion:} Se asume que copiar los iteradores de
+      lista es $\mathcal{O}(1)$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iDesreferenciar}(\In{it}{itDic($\kappa$,
+    $\sigma$)}) $\to$ $res$ : tupla($\kappa$, $\sigma$)}
+  \begin{algorithmic}[1]
+      \State $res \gets \langle$ *it.itC, *it.itS $\rangle$
+      \medskip
+      \Statex \underline{Complejidad:} $\Theta(1)$
+      \Statex \underline{Justificacion:} Se asume que desreferenciar los
+      iteradores de lista es $\mathcal{O}(1)$. Los elementos se devuelven por
+      referencia.
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iAvanzar}(\In{it}{itDic($\kappa$, $\sigma$)})}
+  \begin{algorithmic}[1]
+      \State ++it.itC
+      \State ++it.itS
+      \medskip
+      \Statex \underline{Complejidad:} $\Theta(1)$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iRetroceder}(\In{it}{itDic($\kappa$, $\sigma$)})}
+  \begin{algorithmic}[1]
+      \State --it.itC
+      \State --it.itS
+      \medskip
+      \Statex \underline{Complejidad:} $\Theta(1)$
+  \end{algorithmic}
+\end{algorithm}
+
+\end{Algoritmos}
+
+\end{document}

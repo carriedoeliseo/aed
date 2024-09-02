@@ -1,0 +1,51 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{aed2-symb,aed2-itef,aed2-tad,aed2-diseno}
+
+
+\author{Algoritmos y Estructuras de Datos II, DC, UBA.}
+\date{}
+\title{Super TP AED2}
+
+\begin{document}
+
+\maketitle
+
+\section{TAD \tadNombre{TP}}
+
+\begin{tad}{TP}
+
+\tadObservadores
+\tadOperacion{entregado}{TP/tp,ID/id}{bool}{existe?(id, tp)}
+
+
+\tadAxiomas
+\tadAxioma{entregado(tp, id)}{false}
+\end{tad}
+
+\section{Módulo TP}
+
+\begin{Interfaz}
+
+  \textbf{se explica con}: \tadNombre{TP}
+
+  \textbf{géneros}: \TipoVariable{TP}.
+
+  \Titulo{Operaciones básicas de TP}
+
+  \InterfazFuncion{Generador\_1}{}{TP}%
+  {$res$ $\igobs$ gen}%
+  [$\Theta(1)$]
+  [genera un nuevo tp.]
+
+  \InterfazFuncion{Observador\_1}{\Inout{tp}{TP}, \In{n}{Nat}}{string}
+  [$n < 10$]
+  {$res$ $\igobs$ numeroATexto(obs1(tp), n)}
+  [$E = MC^2$]
+  [El mejor observador del universo]
+  [¿Esto con qué se come?]
+
+\end{Interfaz}
+
+\end{document}

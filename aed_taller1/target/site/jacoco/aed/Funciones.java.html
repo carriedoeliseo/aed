@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Funciones.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">labo1</a> &gt; <a href="index.source.html" class="el_package">aed</a> &gt; <span class="el_source">Funciones.java</span></div><h1>Funciones.java</h1><pre class="source lang-java linenums">package aed;
+
+<span class="fc" id="L3">class Funciones {</span>
+    int cuadrado(int x) {
+<span class="fc" id="L5">        int res = x*x;</span>
+<span class="fc" id="L6">        return res;</span>
+    }
+
+    double distancia(double x, double y) {
+<span class="fc" id="L10">        double res =  Math.sqrt( x*x + y*y ) ; </span>
+<span class="fc" id="L11">        return res;</span>
+    }
+
+    boolean esPar(int n) {
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        boolean res = (n%2 == 0) ;</span>
+<span class="fc" id="L16">        return res;</span>
+    }
+
+    boolean esBisiesto(int n) {
+<span class="fc bfc" id="L20" title="All 6 branches covered.">        boolean res = (n%4 == 0) &amp;&amp; (!(n%100 == 0) || (n%400 == 0)) ; </span>
+<span class="fc" id="L21">        return res;</span>
+    }
+
+    int factorialIterativo(int n) {
+<span class="fc" id="L25">        int res = 1 ;</span>
+<span class="fc" id="L26">        int i = 1 ;</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        if (n != 0){</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">            while (i != (n+1)){</span>
+<span class="fc" id="L29">                res = res*i; </span>
+<span class="fc" id="L30">                i += 1; </span>
+            }
+        }
+<span class="fc" id="L33">        return res;</span>
+    }
+
+    int factorialRecursivo(int n) {
+<span class="fc" id="L37">        int res = 1 ;</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (n != 0){</span>
+<span class="fc" id="L39">            res = n * factorialRecursivo(n-1) ;</span>
+        }
+<span class="fc" id="L41">        return res;</span>
+    }
+
+    boolean esPrimo(int n) {
+<span class="fc" id="L45">        int cant_divisores = 0;</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        for (int i=1 ; i != n+1 ; i++){</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">            if (n%i == 0) cant_divisores += 1 ;</span>
+        }
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        return (cant_divisores == 2);</span>
+    }
+
+    int sumatoria(int[] numeros) {
+<span class="fc" id="L53">        int res = 0 ;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        for (int i = 0; i != numeros.length ; i++){</span>
+<span class="fc" id="L55">            res += numeros[i] ;</span>
+        }
+<span class="fc" id="L57">        return res;</span>
+    }
+
+    int busqueda(int[] numeros, int buscado) {
+<span class="fc" id="L61">        int res = -1 ;</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        for (int i = 0 ; i != numeros.length ; i++){</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (numeros[i] == buscado) res = i ;</span>
+        }
+<span class="fc" id="L65">        return res;</span>
+    }
+
+    boolean tienePrimo(int[] numeros) {
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        for(int i = 0; i != numeros.length ; i++){</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">            if (esPrimo(numeros[i]) == true) return true ;</span>
+        }
+<span class="fc" id="L72">        return false;</span>
+    }
+
+    boolean todosPares(int[] numeros) {
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        for(int i : numeros){</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">            if(!(esPar(i))) return false ;</span>
+        }
+<span class="fc" id="L79">        return true;</span>
+    }
+
+    boolean esPrefijo(String s1, String s2) {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        for(int i = 0 ; i != s1.length() ; i++){</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">            if (i &gt;= s2.length()) return false ;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">            if (s1.charAt(i) != s2.charAt(i)) return false ;</span>
+        }
+<span class="fc" id="L87">        return true;</span>
+    }
+
+    boolean esSufijo(String s1, String s2) {
+<span class="fc" id="L91">        int lenght_dif = s2.length() - s1.length() ;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (lenght_dif &lt; 0) return false ;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        for(int i = s2.length()-1 ; i != lenght_dif-1 ; i--){</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">            if (s1.charAt(i-lenght_dif) != s2.charAt(i)) return false ;</span>
+        }
+<span class="fc" id="L96">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

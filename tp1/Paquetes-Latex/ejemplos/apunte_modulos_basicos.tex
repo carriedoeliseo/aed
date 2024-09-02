@@ -1,0 +1,2034 @@
+% % Apunte de modulos basicos
+%
+\documentclass[a4paper,10pt]{article}
+\usepackage[paper=a4paper, hmargin=1.5cm, bottom=1.5cm, top=3.5cm]{geometry}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{xspace}
+\usepackage{xargs}
+\usepackage{ifthen}
+\usepackage{aed2-tad,aed2-symb,aed2-itef}
+\usepackage{algorithmicx, algpseudocode, algorithm}
+\usepackage[colorlinks=true, linkcolor=blue]{hyperref}
+
+
+\hypersetup{%
+ % Para que el PDF se abra a página completa.
+ pdfstartview= {FitH \hypercalcbp{\paperheight-\topmargin-1in-\headheight}},
+ pdfauthor={Cátedra de Algoritmos y Estructuras de Datos II - DC - UBA},
+ pdfkeywords={Módulos básicos},
+ pdftitle={Módulos básicos de diseño},
+ pdfsubject={Módulos básicos de diseño}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PARAMETROS A SER MODIFICADOS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%cuatrimestre de acuerdo a la opcion
+\newcommand{\Cuatrimestre}{$1^\mathrm{er}$ cuatrimestre de 2019}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OTRAS OPCIONES QUE NO HAY QUE MODIFICAR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%opening
+\title{Apunte de Módulos Básicos (v.\ 0.3$\alpha$)}
+\author{Algoritmos y Estructuras de Datos II, DC, UBA.}
+\date{\Cuatrimestre}
+
+% Acomodo fancyhdr.
+\pagestyle{fancy}
+\thispagestyle{fancy}
+\lhead{Algoritmos y Estructuras de Datos II}
+\rhead{\Cuatrimestre}
+\cfoot{\thepage /\pageref{LastPage}}
+\renewcommand{\footrulewidth}{0.4pt}
+\setlength{\headheight}{13pt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMANDOS QUE ALGUN DIA PUEDAN FORMAR UN PAQUETE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\moduloNombre}[1]{\textbf{#1}}
+
+\let\NombreFuncion=\textsc
+\let\TipoVariable=\texttt
+\let\ModificadorArgumento=\textbf
+\newcommand{\res}{$res$\xspace}
+\newcommand{\tab}{\hspace*{7mm}}
+
+\newcommandx{\TipoFuncion}[3]{%
+  \NombreFuncion{#1}(#2) \ifx#3\empty\else $\to$ \res\,: \TipoVariable{#3}\fi%
+}
+\newcommand{\In}[2]{\ModificadorArgumento{in} \ensuremath{#1}\,: \TipoVariable{#2}\xspace}
+\newcommand{\Out}[2]{\ModificadorArgumento{out} \ensuremath{#1}\,: \TipoVariable{#2}\xspace}
+\newcommand{\Inout}[2]{\ModificadorArgumento{in/out} \ensuremath{#1}\,: \TipoVariable{#2}\xspace}
+\newcommand{\Aplicar}[2]{\NombreFuncion{#1}(#2)}
+
+\newlength{\IntFuncionLengthA}
+\newlength{\IntFuncionLengthB}
+\newlength{\IntFuncionLengthC}
+%InterfazFuncion(nombre, argumentos, valor retorno, precondicion, postcondicion, complejidad, descripcion, aliasing)
+\newcommandx{\InterfazFuncion}[9][4=true,6,7,8,9]{%
+  \hangindent=\parindent
+  \TipoFuncion{#1}{#2}{#3}\\%
+  \textbf{Pre} $\equiv$ \{#4\}\\%
+  \textbf{Post} $\equiv$ \{#5\}%
+  \ifx#6\empty\else\\\textbf{Complejidad:} #6\fi%
+  \ifx#7\empty\else\\\textbf{Descripción:} #7\fi%
+  \ifx#8\empty\else\\\textbf{Aliasing:} #8\fi%
+  \ifx#9\empty\else\\\textbf{Requiere:} #9\fi%
+}
+
+\newenvironment{Interfaz}{%
+  \parskip=2ex%
+  \noindent\textbf{\Large Interfaz}%
+  \par%
+}{}
+
+\newenvironment{Representacion}{%
+  \vspace*{2ex}%
+  \noindent\textbf{\Large Representación}%
+  \vspace*{2ex}%
+}{}
+
+\newenvironment{Algoritmos}{%
+  \vspace*{2ex}%
+  \noindent\textbf{\Large Algoritmos}%
+  \vspace*{2ex}%
+}{}
+
+
+\newcommand{\Titulo}[1]{
+  \vspace*{1ex}\par\noindent\textbf{\large #1}\par
+}
+
+\newenvironmentx{Estructura}[2][2={estr}]{%
+  \par\vspace*{2ex}%
+  \TipoVariable{#1} \textbf{se representa con} \TipoVariable{#2}%
+  \par\vspace*{1ex}%
+}{%
+  \par\vspace*{2ex}%
+}%
+
+\newboolean{EstructuraHayItems}
+\newlength{\lenTupla}
+\newenvironmentx{Tupla}[1][1={estr}]{%
+    \settowidth{\lenTupla}{\hspace*{3mm}donde \TipoVariable{#1} es \TipoVariable{tupla}$($}%
+    \addtolength{\lenTupla}{\parindent}%
+    \hspace*{3mm}donde \TipoVariable{#1} es \TipoVariable{tupla}$($%
+    \begin{minipage}[t]{\linewidth-\lenTupla}%
+    \setboolean{EstructuraHayItems}{false}%
+}{%
+    $)$%
+    \end{minipage}
+}
+
+\newcommandx{\tupItem}[3][1={\ }]{%
+    %\hspace*{3mm}%
+    \ifthenelse{\boolean{EstructuraHayItems}}{%
+        ,#1%
+    }{}%
+    \emph{#2}: \TipoVariable{#3}%
+    \setboolean{EstructuraHayItems}{true}%
+}
+
+\newcommandx{\RepFc}[3][1={estr},2={e}]{%
+  \tadOperacion{Rep}{#1}{bool}{}%
+  \tadAxioma{Rep($#2$)}{#3}%
+}%
+
+\newcommandx{\Rep}[3][1={estr},2={e}]{%
+  \tadOperacion{Rep}{#1}{bool}{}%
+  \tadAxioma{Rep($#2$)}{true \ssi #3}%
+}%
+
+\newcommandx{\Abs}[5][1={estr},3={e}]{%
+  \tadOperacion{Abs}{#1/#3}{#2}{Rep($#3$)}%
+  \settominwidth{\hangindent}{Abs($#3$) \igobs #4: #2 $\mid$ }%
+  \addtolength{\hangindent}{\parindent}%
+  Abs($#3$) \igobs #4: #2 $\mid$ #5%
+}%
+
+\newcommandx{\AbsFc}[4][1={estr},3={e}]{%
+  \tadOperacion{Abs}{#1/#3}{#2}{Rep($#3$)}%
+  \tadAxioma{Abs($#3$)}{#4}%
+}%
+
+
+\newcommand{\DRef}{\ensuremath{\rightarrow}}
+
+\begin{document}
+
+%pagina de titulo
+\thispagestyle{empty}
+\maketitle
+\tableofcontents
+
+\newpage
+
+\section{Introducción}
+
+El presente documento describe varios módulos que se pueden utilizar para realizar el TP de diseño.  Además, sirve como ejemplo de qué se espera del TP de diseño, y muestra algunas técnicas que podrían ser útiles a la hora de desarrollar nuevos módulos.
+
+Antes de introducir los módulos, se especifican los tipos de iteradores que se van a utilizar.  Esta especificación es auxiliar, para simplificar las precondiciones y postcondiciones de los algoritmos que utilizan iteradores.  Luego, se presentan todos los módulos, con su interfaz, representación y cálculos de complejidad.
+
+~
+
+\noindent\textbf{NOTA: Este apunte no está terminado.  Además de ser incompleto (faltan los algoritmos y los cálculos de complejidad de todos los módulos), puede tener (mejor dicho, tiene) errores y podría sufrir cambios en cualquier momento.}
+
+\section{TADs para especificar iteradores}
+
+En esta sección se describen los TADs que utilizamos en la materia para especificar los iteradores.  Los mismos no son más que un conjunto de funciones auxiliares que sirven para especificar las precondiciones y postcondiciones de las funciones que involucran iteradores.  La forma de especificar estos iteradores es ``envolviendo'' una estructura que representa el concepto de ordenamiento de los valores contenidos.  En este sentido, la especificación de los iteradores con TADs podría evitarse, pero lo incluimos para simplificar la especificación de los módulos. 
+
+\subsection{TAD \tadNombre{Iterador Unidireccional($\alpha$)}}
+
+El iterador unidireccional permite recorrer los elementos una única vez, avanzando continuamente.  Es el tipo de iterador más simple que se puede especificar y no permite modificar la estructura iterada.  Como la idea es convertir cualquier estructura en una secuencia, es razonable que este iterador tome una secuencia en la parte de especificación.  La idea final es que esta secuencia describa el orden en el que se recorrerán los elementos de la estructura, i.e., esta secuencia es una ``permutación'' de la estructura iterada.
+
+\begin{tad}{\tadNombre{Iterador Unidireccional($\alpha$)}}
+
+  \tadParametrosFormales{
+    \tadEncabezadoInline{géneros}{$\alpha$}
+  }
+
+  \tadGeneros{itUni($\alpha$)}
+
+  \tadIgualdadObservacional{it_1}{it_2}{it($\alpha$)}{Siguientes($it_1$) \igobs Siguientes($it_2$)}
+
+  \tadObservadores
+  \tadOperacion{Siguientes}{itUni($\alpha$)}{secu($\alpha$)}{}
+
+  \tadGeneradores
+  \tadOperacion{CrearItUni}{secu($\alpha$)}{itUni($\alpha$)}{}
+
+  \tadOtrasOperaciones
+  \tadAlinearFunciones{HayMas?}{itUni($\alpha$)/it}
+  \tadOperacion{HayMas?}{itUni($\alpha$)}{bool}{}
+  \tadOperacion{Actual}{itUni($\alpha$)/it}{$\alpha$}{HayMas?($it$)}
+  \tadOperacion{Avanzar}{itUni($\alpha$)/it}{itUni($\alpha$)}{HayMas?($it$)}
+
+
+  \tadAxiomas
+  \tadAlinearAxiomas{Siguientes(CrearItUni($i$))}
+  \tadAxioma{Siguientes(CrearItUni($i$))}{$i$}
+  \tadAxioma{HayMas?($it$)}{$\lnot$Vacia?(Siguientes($it$))}
+  \tadAxioma{Actual($it$)}{Prim(Siguientes($it$))}
+  \tadAxioma{Avanzar($it$)}{CrearItUni(Fin(Siguientes($it$)))}
+\end{tad}
+
+\subsection{TAD \tadNombre{Iterador Unidireccional Modificable($\alpha$)}}
+
+El iterador unidireccional modificable es una extensión del iterador unidireccional que permite realizar algunas operaciones de modificación sobre los elementos de la estructura recorrida.  Para poder especificar las modificaciones a la estructura iterada, se guarda la secuencia de los elementos que ya fueron recorridos.  Observar que para especificar los efectos secundarios que tienen estas modificaciones en el tipo iterado, hay que aclarar cómo es el aliasing entre el iterador y el tipo iterado en el módulo correspondiente.
+
+
+\begin{tad}{\tadNombre{Iterador Unidireccional Modificable($\alpha$)}}
+
+   \tadParametrosFormales{
+     \tadEncabezadoInline{géneros}{$\alpha$}
+   }
+
+  \tadGeneros{itMod($\alpha$)}
+
+  \tadIgualdadObservacional{it_1}{it_2}{itMod($\alpha$)}{Anteriores($it_1$) \igobs Anteriores($it_2$) $\land$\\ Siguientes($it_1$) \igobs Siguientes($it_2$)}
+
+  \tadObservadores
+  \tadAlinearFunciones{Anteriores}{itMod($\alpha$)}
+  \tadOperacion{Anteriores}{itMod($\alpha$)}{secu($\alpha$)}{}
+  \tadOperacion{Siguientes}{itMod($\alpha$)}{secu($\alpha$)}{}
+
+  \tadGeneradores
+  \tadNoAlinearFunciones
+  \tadOperacion{CrearItMod}{secu($\alpha$),secu($\alpha$)}{itMod($\alpha$)}{}
+
+  \tadOtrasOperaciones
+  \tadAlinearFunciones{SecuSuby}{itMod($\alpha$),$\alpha$}
+  \tadOperacion{SecuSuby}{itMod($\alpha$)}{secu($\alpha$)}{}
+  \tadOperacion{HayMas?}{itMod($\alpha$)}{bool}{}
+  \tadOperacion{Actual}{itMod($\alpha$)/it}{$\alpha$}{HayMas?($it$)}
+  \tadOperacion{Avanzar}{itMod($\alpha$)/it}{itMod($\alpha$)}{HayMas?($it$)}
+  \tadOperacion{Eliminar}{itMod($\alpha$)/it}{itMod($\alpha$)}{HayMas?($it$)}
+  \tadOperacion{Agregar}{itMod($\alpha$),$\alpha$}{itMod($\alpha$)}{}
+
+  \tadAxiomas
+  \tadAlinearAxiomas{Anteriores(CrearItMod($i$, $d$))}
+  \tadAxioma{Anteriores(CrearItMod($i$, $d$))}{$i$}
+  \tadAxioma{Siguientes(CrearItMod($i$, $d$))}{$d$}
+  \tadAxioma{SecuSuby($it$)}{Anteriores($it$) \& Siguientes($it$)}
+  \tadAxioma{HayMas?($it$)}{$\lnot$Vacia?(Siguientes($it$))}
+  \tadAxioma{Actual($it$)}{Prim(Siguientes($it$))}
+  \tadAxioma{Avanzar($it$)}{CrearItMod(Anteriores($it$) $\circ$ Actual($it$), Fin(Siguientes($it$)))}
+  \tadAxioma{Eliminar($it$)}{CrearItMod(Anteriores($it$), Fin(Siguientes($it$)))}
+  \tadAxioma{Agregar($it,a$)}{CrearItMod(Anteriores($it$) $\circ$ $a$, Siguientes($it$))}
+\end{tad}
+
+
+\subsection{\tadNombre{Iterador Bidireccional($\alpha$)}}
+
+El iterador bidireccional es una generalización del iterador unidireccional modificable.  El mismo permite recorrer los elementos avanzando y retrocediendo.  Si bien se podría hacer una versión de iterador bidireccional no modificable, la especificación de ambas es similar.  Cuando se utilice en un módulo que no permita algunas modificaciones, simplemente se puede omitir el diseño de las funciones que realizan estas modificaciones (ver e.g., módulo Conjunto Lineal).  Por este motivo, optamos sólo por la versión modificable.
+
+Para que el iterador bidireccional sea lo mas simétrico posible, cambiamos la operación actual por dos: anterior y siguiente.  La idea conceptual es pensar que el iterador está posicionado en el medio de dos posiciones, y puede acceder tanto a la anterior como a la siguiente.  Obviamente, la implementación puede diferir de esta visión conceptual.
+
+\begin{tad}{\tadNombre{Iterador Bidireccional($\alpha$)}}
+
+  \tadParametrosFormales{
+    \tadEncabezadoInline{géneros}{$\alpha$}
+  }
+
+  \tadGeneros{itBi($\alpha$)}
+
+  \tadIgualdadObservacional{it_1}{it_2}{itBi($\alpha$)}{Anteriores($it_1$) \igobs Anteriores($it_2$) $\land$\\ Siguientes($it_1$) \igobs Siguientes($it_2$)}
+
+  \tadObservadores
+  \tadAlinearFunciones{Anteriores}{itBi($\alpha$)}
+  \tadOperacion{Anteriores}{itBi($\alpha$)}{secu($\alpha$)}{}
+  \tadOperacion{Siguientes}{itBi($\alpha$)}{secu($\alpha$)}{}
+
+  \tadGeneradores
+  \tadNoAlinearFunciones
+  \tadOperacion{CrearItBi}{secu($\alpha$),secu($\alpha$)}{itBi($\alpha$)}{}
+
+  \tadOtrasOperaciones
+  \tadAlinearFunciones{AgregarComoSiguiente}{itBi($\alpha$),$\alpha$}
+  \tadOperacion{SecuSuby}{itBi($\alpha$)}{secu($\alpha$)}{}
+  \tadOperacion{HayAnterior?}{itBi($\alpha$)}{bool}{}
+  \tadOperacion{Anterior}{itBi($\alpha$)/it}{$\alpha$}{HayAnterior?($it$)}
+  \tadOperacion{Retroceder}{itBi($\alpha$)/it}{itBi($\alpha$)}{HayAnterior?($it$)}
+  \tadOperacion{HaySiguiente?}{itBi($\alpha$)}{bool}{}
+  \tadOperacion{Siguiente}{itBi($\alpha$)/it}{$\alpha$}{HaySiguiente?($it$)}
+  \tadOperacion{Avanzar}{itBi($\alpha$)/it}{itBi($\alpha$)}{HaySiguiente?($it$)}
+  \tadOperacion{EliminarSiguiente}{itBi($\alpha$)/it}{itBi($\alpha$)}{HaySiguiente?($it$)}
+  \tadOperacion{EliminarAnterior}{itBi($\alpha$)/it}{itBi($\alpha$)}{HayAnterior?($it$)}  
+  \tadOperacion{AgregarComoAnterior}{itBi($\alpha$),$\alpha$}{itBi($\alpha$)}{}
+  \tadOperacion{AgregarComoSiguiente}{itBi($\alpha$),$\alpha$}{itBi($\alpha$)}{}
+
+
+  \tadAxiomas
+  \tadAlinearAxiomas{AgregarComoSiguiente($it,a$)}
+  \tadAxioma{Anteriores(CrearItBi($i$, $d$))}{$i$}
+  \tadAxioma{Siguientes(CrearItBi($i$, $d$))}{$d$}
+  \tadAxioma{SecuSuby($it$)}{Anteriores($i$) \& Siguientes($d$)}
+  \tadAxioma{HayAnterior?($it$)}{$\lnot$Vacia?(Anteriores($it$))}
+  \tadAxioma{Anterior($it$)}{Ult(Anteriores($it$))}
+  \tadAxioma{Retroceder($it$)}{CrearItBi(Com(Anteriores($it$)), Anterior($it$) \puntito Siguientes($it$))}
+  \tadAxioma{HaySiguiente?($it$)}{$\lnot$Vacia?(Siguientes($it$))}
+  \tadAxioma{Siguiente($it$)}{Prim(Siguientes($it$))}
+  \tadAxioma{Avanzar($it$)}{CrearItBi(Anteriores($it$) $\circ$ Siguiente($it$), Fin(Siguientes($it$)))}
+  \tadAxioma{EliminarSiguiente($it$)}{CrearItBi(Anteriores($it$), Fin(Siguientes($it$)))}
+  \tadAxioma{EliminarAnterior($it$)}{CrearItBi(Com(Anteriores($it$)), Siguientes($it$))}
+  \tadAxioma{AgregarComoAnterior($it,a$)}{CrearItBi(Anteriores($it$) $\circ$ $a$, Siguientes($it$))}
+  \tadAxioma{AgregarComoSiguiente($it,a$)}{CrearItBi(Anteriores($it$), $a$ \puntito Siguientes($it$))}
+  \tadAxioma{SecuSuby($it$)}{Anteriores($it$) \& Siguientes($it$)}
+\end{tad}
+
+\section{Invariantes de aliasing}
+
+Para simplificar la descripción del aliasing entre dos variables, vamos a definir un ``metapredicado''.  Este metapredicado, llamado \emph{alias}, lo vamos a utilizar para describir aquellas variables que comparten memoria en la ejecución del programa.  Si bien el metapredicado alias no es parte del lenguaje de TADs y no lo describimos en lógica de primer orden, lo vamos a utilizar en las precondiciones y postcondiciones de las funciones.  En esta sección vamos a describir su semántica en castellano.
+
+Alias es un metapredicado con un único parámetro $\phi$ que puede ser una expresión booleana del lenguaje de TADs o un predicado en lógica de primer orden.  Este paramétro $\phi$ involucrará un conjunto $V$ con dos o más variables del programa.  El significado es que las variables de $V$ satisfacen $\phi$ durante la ejecución del resto del programa, siempre y cuando dichas variables no sean asignadas con otro valor.  En particular, el invariante puede dejar de satisfacerse cuando una variable de $V$ se indefine.  Una variable se indefine, cuando el valor al que hace referencia deja de ser valido.  Esto ocurre principalmente cuando se elimina un elemento que está siendo iterado.
+
+Por ejemplo, supongamos que $s$ y $t$ son dos variables de tipo $\alpha$.  Si escribimos
+\begin{center}
+  alias($s = t$),
+\end{center}
+lo que significa informalmente es que $s$ y $t$ comparten la misma posición de memoria.  Un poco más rigurosamente, lo que significa es que cualquier modificación que se realice a $s$ afecta a $t$ y viceversa, de forma tal que $s = t$, mientras a $s$ y a $t$ no se les asigne otro valor.
+
+El ejemplo anterior es un poco básico.  Supongamos ahora que tenemos dos variables $s$ y $c$ de tipos secu($\alpha$) y conj($\alpha$), respectivamente.  Si escribimos
+\begin{center}
+  alias(esPermutacion($s, c$)),
+\end{center}
+estamos diciendo que $s$ y $c$ comparten la misma memoria de forma tal que cualquier modificación sobre $s$ afecta a $c$ y viceversa, de forma tal que se satisface esPermutacion($s, c$).  En particular, si se agrega un elemento $a$ a $c$, se obtiene que la secuencia $s$ se modifica de forma tal que resulta una permutación de $c \cup \{a\}$.  Notemos que, en particular, $s$ podría cambiar a cualquier permutación, salvo que se indique lo contrario.  De la misma forma, si se eliminara un elemento $a$ de $s$, entonces $c$ tambien se vería afectado de forma tal que $s$ sea una permutación de $c$.  En particular, $c$ pasaría a ser $c \setminus \{a\}$.
+
+Debemos observar que este invariante no es magico, sino que es una declaración como cualquier otra, y el programado debe asegurarse que este invariante se cumpla.  En particular, en el ejemplo anterior, no deberiamos permitir la inserción de elementos repetido en $s$, ya que dejaría de ser una posible permutación de un conjunto.
+
+\section{Módulo Lista Enlazada($\alpha$)}
+
+El módulo Lista Enlazada provee una secuencia que permite la inserción, modificación, borrado y acceso eficiente del primer y último elemento.  En cambio, el acceso a un elemento aleatorio tiene un costo lineal.  En forma concisa, este módulo implementa lo que se conoce como una lista doblemente enlazada, con punteros al inicio y al fin.
+
+En cuanto al recorrido de los elementos, se provee un iterador bidireccional que permite eliminar y agregar elementos.  De esta forma, se pueden aplicar filtros recorriendo una única vez la estructura.  El iterador se puede inicializar tanto apuntando al inicio, en cuyo caso el siguiente del iterador es el primer elemento de la lista, como apuntando al fin, en cuyo caso el anterior del iterador es el último elemento de la lista.  En consecuencia, se puede recorrer el reverso de la lista en forma eficiente.
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(a)$ al costo de copiar el elemento $a \in \alpha$ (i.e., $copy$ es una función de $\alpha$ en $\mathbb{N}$).\footnote{Nótese que este es un abuso de notación, ya que no estamos describiendo $copy$ en función del tamaño de $a$.  A la hora de usarlo, habrá que realizar la traducción.}
+
+\begin{Interfaz}
+  
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}} $\alpha$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{\textwidth-2\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$}
+    {$res \igobs a$}
+    [$\Theta(copy(a))$]
+    [función de copia de $\alpha$'s]
+    %\TipoFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$} \qquad función de copia, con costo temporal $\Theta(copy(a))$.
+  }
+
+  \textbf{se explica con}: \tadNombre{Secuencia$(\alpha)$}, \tadNombre{Iterador Bidireccional($\alpha$)}.
+
+  \textbf{géneros}: \TipoVariable{lista$(\alpha)$}, \TipoVariable{itLista($\alpha$)}.
+
+  \Titulo{Operaciones básicas de lista}
+
+  \InterfazFuncion{Vacía}{}{lista$(\alpha)$}%
+  {$res \igobs \secuencia{}$}%
+  [$\Theta(1)$]
+  [genera una lista vacía.]
+
+  \InterfazFuncion{AgregarAdelante}{\Inout{l}{lista($\alpha$)}, \In{a}{$\alpha$}}{itLista($\alpha$}
+  [$l \igobs l_0$]
+  {$l \igobs \secuencia{a}[l_0]$ $\land$ $res$ $=$ CrearItBi(\secuencia{}, $l$) $\land$ alias(SecuSuby($res$) $=$ $l$)}
+  [$\Theta(copy(a))$]
+  [agrega el elemento $a$ como primer elemento de la lista.  Retorna un iterador a $l$, de forma tal que Siguiente devuelva $a$.]
+  [el elemento $a$ agrega por copia. El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.]
+
+  \InterfazFuncion{AgregarAtras}{\Inout{l}{lista($\alpha$)}, \In{a}{$\alpha$}}{itLista($\alpha$)}
+  [$l \igobs l_0$]
+  {$l \igobs l_0 \circ a$ $\land$ $res$ $=$ CrearItBi($l_0$, $a$) $\land$ alias(SecuSuby($res$) $=$ $l$)}
+  [$\Theta(copy(a))$]
+  [agrega el elemento $a$ como último elemento de la lista. Retorna un iterador a $l$, de forma tal que Siguiente devuelva $a$.]
+  [el elemento $a$ se agrega por copia. El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.]
+
+  \InterfazFuncion{EsVacía?}{\In{l}{lista($\alpha$)}}{bool}
+  {$res$ $\igobs$ vacia?($l$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si $l$ no contiene elementos]
+
+  \InterfazFuncion{Fin}{\Inout{l}{lista($\alpha$)}}{}
+  [$l \igobs l_0$ $\land$ $\lnot$vacía?($l$)]
+  {$l$ $\igobs$ fin($l_0$)}
+  [$\Theta(1)$]
+  [elimina el primer elemento de $l$]
+
+  \InterfazFuncion{Comienzo}{\Inout{l}{lista($\alpha$)}}{}
+  [$l \igobs l_0$ $\land$ $\lnot$vacía?($l$)]
+  {$l$ $\igobs$ com($l_0$)}
+  [$\Theta(1)$]
+  [elimina el último elemento de $l$]
+
+  \InterfazFuncion{Primero}{\In{l}{lista($\alpha$)}}{$\alpha$}
+  [$\lnot$vacía?($l$)]
+  {alias($res$ $\igobs$ prim($l$))}
+  [$\Theta(1)$]
+  [devuelve el primer elemento de la lista.]
+  [$res$ es modificable si y sólo si $l$ es modificable.]
+
+  \InterfazFuncion{Ultimo}{\In{l}{lista($\alpha$)}}{$\alpha$}
+  [$\lnot$vacía?($l$)]
+  {alias($res$ $\igobs$ ult($l$))}
+  [$\Theta(1)$]
+  [devuelve el último elemento de la lista.]
+  [$res$ es modificable si y sólo si $l$ es modificable.]
+
+
+  \InterfazFuncion{Longitud}{\In{l}{lista($\alpha$)}}{nat}
+  {$res$ $\igobs$ long($l$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de elementos que tiene la lista.]
+
+
+  \InterfazFuncion{$\bullet$[$\bullet$]}{\In{l}{lista($\alpha$)}, \In{i}{nat}}{$\alpha$}
+  [$i$ $<$ long($l$)]
+  {alias($res$ $\igobs$ iesimo($l$, $i$))}
+  [$\Theta(i)$]
+  [devuelve el elemento que se encuentra en la $i$-ésima posición de la lista en base $0$.  Es decir, {$l[i]$} devuelve el elemento que se encuentra en la posición $i+1$.]  
+  [$res$ es modificable si y sólo si $l$ es modificable.]
+
+  \InterfazFuncion{Copiar}{\In{l}{lista($\alpha$)}}{lista($\alpha$)}
+  {$res \igobs l$}
+  [{$\displaystyle\Theta\left(\sum_{i=1}^{\ell}copy({l[i]})\right)$, donde $\ell$ $=$ long($l$).}]
+  [genera una copia nueva de la lista.]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{l_1}{lista($\alpha$)}, \In{l_2}{lista($\alpha$)}}{bool}
+  {$res \igobs l_1 = l_2$}
+  [{$\displaystyle\Theta\left(\sum_{i=1}^{\ell}{equal(l_1[i],l_2[i])}\right)$, donde $\ell = \min\{\text{long}(l_1),\text{long}(l_2)\}$}.]
+  [compara $l_1$ y $l_2$ por igualdad, cuando $\alpha$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{a_1}{$\alpha$}, \In{a_2}{$\alpha$}}{bool}
+    {$res \igobs (a_1 = a_2)$}
+    [$\Theta(equal(a_1, a_2))$]
+    [función de igualdad de $\alpha$'s]
+  }}]
+
+  \Titulo{Operaciones del iterador}
+
+  El iterador que presentamos permite modificar la lista recorrida.  Sin embargo, cuando la lista es no modificable, no se pueden utilizar las funciones que la modificarían, teniendo en cuenta el aliasing existente entre el iterador y la lista iterada.  Cuando la lista es modificable, vamos a decir que el iterador generado es modificable.
+
+  \InterfazFuncion{CrearIt}{\In{l}{lista($\alpha$)}}{itLista($\alpha$)}
+  {$res$ $\igobs$ crearItBi(\secuencia{}, $l$) $\land$ alias(SecuSuby($it$) $=$ $l$)}
+  [$\Theta(1)$]
+  [crea un iterador bidireccional de la lista, de forma tal que al pedir \NombreFuncion{Siguiente} se obtenga el primer elemento de $l$.]
+  [el iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.]
+
+  \InterfazFuncion{CrearItUlt}{\In{l}{lista($\alpha$)}}{itLista($\alpha$)}
+  {$res$ $\igobs$ crearItBi($l$, \secuencia{}) $\land$ alias(SecuSuby($it$) $=$ $l$)}
+  [$\Theta(1)$]
+  [crea un iterador bidireccional de la lista, de forma tal que al pedir \NombreFuncion{Anterior} se obtenga el último elemento de $l$.]  
+  [el iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.]
+
+  \InterfazFuncion{HaySiguiente}{\In{it}{itLista($\alpha$)}}{bool}
+  {$res$ $\igobs$ haySiguiente?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para avanzar.]
+
+  \InterfazFuncion{HayAnterior}{\In{it}{itLista($\alpha$)}}{bool}
+  {$res$ $\igobs$ hayAnterior?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para retroceder.]
+
+  \InterfazFuncion{Siguiente}{\In{it}{itLista($\alpha$)}}{$\alpha$}
+  [HaySiguiente?($it$)]
+  {alias($res$ $\igobs$ Siguiente($it$))}
+  [$\Theta(1)$]
+  [devuelve el elemento siguiente a la posición del iterador.]
+  [$res$ es modificable si y sólo si $it$ es modificable.]
+
+  \InterfazFuncion{Anterior}{\In{it}{itLista($\alpha$)}}{$\alpha$}
+  [HayAnterior?($it$)]
+  {alias($res$ $\igobs$ Anterior($it$))}
+  [$\Theta(1)$]
+  [devuelve el elemento anterior del iterador.]
+  [$res$ es modificable si y sólo si $it$ es modificable.]
+
+
+  \InterfazFuncion{Avanzar}{\Inout{it}{itLista($\alpha$)}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ Avanzar($it_0$)}
+  [$\Theta(1)$]
+  [avanza el iterador a la posición siguiente.]
+
+  \InterfazFuncion{Retroceder}{\Inout{it}{itLista($\alpha$)}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ Retroceder($it_0$)}
+  [$\Theta(1)$]
+  [retrocede el iterador a la posición anterior.]
+
+  \InterfazFuncion{EliminarSiguiente}{\Inout{it}{itLista($\alpha$)}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ EliminarSiguiente($it_0$)}
+  [$\Theta(1)$]
+  [elimina de la lista iterada el valor que se encuentra en la posición siguiente del iterador.]
+
+  \InterfazFuncion{EliminarAnterior}{\Inout{it}{itLista($\alpha$)}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ EliminarAnterior($it_0$)}
+  [$\Theta(1)$]
+  [elimina de la lista iterada el valor que se encuentra en la posición anterior del iterador.]
+
+  \InterfazFuncion{AgregarComoSiguiente}{\Inout{it}{itLista($\alpha$)}, \In{a}{$\alpha$}}{}
+  [$it = it_0$]
+  {$it$ $\igobs$ AgregarComoSiguiente($it_0$, $a$)}
+  [$\Theta(copy(a))$]
+  [agrega el elemento $a$ a la lista iterada, entre las posiciones anterior y siguiente del iterador, dejando al iterador posicionado de forma tal que al llamar a \NombreFuncion{Siguiente} se obtenga $a$.]
+  [el elemento $a$ se agrega por copia.]
+
+
+  \InterfazFuncion{AgregarComoAnterior}{\Inout{it}{itLista($\alpha$)}, \In{a}{$\alpha$}}{}
+  [$it = it_0$]
+  {$it$ $\igobs$ AgregarComoAnterior($it_0$, $a$)}
+  [$\Theta(copy(a))$]
+  [agrega el elemento $a$ a la lista iterada, entre las posiciones anterior y siguiente del iterador, dejando al iterador posicionado de forma tal que al llamar a \NombreFuncion{Anterior} se obtenga $a$.]
+  [el elemento $a$ se agrega por copia.]
+
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  \Titulo{Representación de la lista}
+
+  El objetivo de este módulo es implementar una lista doblemente enlazada con punteros al principio y al fin.  Para simplificar un poco el manejo de la estructura, vamos a reemplazarla por una lista circular, donde el siguiente del último apunta al primero y el anterior del primero apunta al último.  La estructura de representación, su invariante de representación y su función de abstracción son las siguientes.
+
+  \begin{Estructura}{lista$(\alpha)$}[lst]
+    \begin{Tupla}[lst]
+      \tupItem{primero}{puntero(nodo)}%
+      \tupItem{longitud}{nat}%
+    \end{Tupla}
+
+    \begin{Tupla}[nodo]
+      \tupItem{dato}{$\alpha$}%
+      \tupItem{anterior}{puntero(nodo)}%
+      \tupItem{siguiente}{puntero(nodo)}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[lst][l]{($l$.primero $=$ NULL) $=$ ($l$.longitud $=$ $0$) $\yluego$ ($l$.longitud $\neq$ $0$ \impluego \\
+    Nodo($l$, $l$.longitud) $=$ $l$.primero $\land$ \\
+    ($\forall i$: nat)(Nodo($l$,$i$)\DRef siguiente $=$ Nodo($l$,$i+1$)\DRef anterior) $\land$ \\
+    ($\forall i$: nat)($1 \leq i <$ $l$.longitud $\implies$ Nodo($l$,$i$) $\neq$ $l$.primero)}\mbox{}
+
+  ~      
+
+  \tadOperacion{Nodo}{lst/l,nat}{puntero(nodo)}{$l$.primero $\neq$ NULL}
+  \tadAxioma{Nodo($l$,$i$)}{\IF $i = 0$ THEN $l$.primero ELSE Nodo(FinLst($l$), $i-1$) FI}
+
+  ~
+
+  \tadOperacion{FinLst}{lst}{lst}{}
+  \tadAxioma{FinLst($l$)}{Lst($l$.primero\DRef siguiente, $l$.longitud $-$ $\min$\{$l$.longitud, $1$\})}
+
+  ~
+
+  \tadOperacion{Lst}{puntero(nodo),nat}{lst}{}
+  \tadAxioma{Lst($p,n$)}{$\langle p, n\rangle$}
+
+  ~
+ 
+  \AbsFc[lst]{secu($\alpha$)}[l]{\IF $l$.longitud $=$ $0$ THEN \secuencia{} ELSE \secuencia{$l$.primero\DRef dato}[Abs(FinLst($l$))] FI}
+
+  \Titulo{Representación del iterador}
+
+  El iterador es simplemente un puntero al nodo siguiente.  Este puntero apunta a NULL en el caso en que se llegó al final de la lista.  Por otra parte, el nodo anterior se obtiene accediendo al nodo siguiente y retrocediendo (salvo que el nodo siguiente sea el primer nodo).  Para poder modificar la lista, tambien hay que guardar una referencia a la lista que está siendo iterada.  Además, de esta forma podemos saber si el iterador apunta al primero o no.
+
+  \begin{Estructura}{itLista($\alpha$)}[iter]
+    \begin{Tupla}[iter]
+      \tupItem{siguiente}{puntero(nodo)}%
+      \tupItem{lista}{puntero(lst)}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[iter][it]{Rep($\ast$($it$.lista)) $\yluego$ ($it$.siguiente $=$ NULL $\oluego$ ($\exists i$: nat)(Nodo($\ast it$.lista, $i$) $=$ $it$.siguiente)}
+
+  ~
+
+  \Abs[iter]{itBi($\alpha$)}[it]{b}{Siguientes($b$) $=$ Abs(Sig($it$.lista, $it$.siguiente)) $\land$\\
+    Anteriores($b$) $=$ Abs(Ant($it$.lista, $it$.siguiente))}
+
+  ~
+
+  \tadOperacion{Sig}{puntero(lst)/l,puntero(nodo)/p}{lst}{Rep($\langle l, p\rangle$)}
+  \tadAxioma{Sig($i, p$)}{Lst($p$, $l$\DRef longitud $-$ Pos($\ast l$, $p$))}
+
+  ~
+
+  \tadOperacion{Ant}{puntero(lst)/l,puntero(nodo)/p}{lst}{Rep($\langle l, p\rangle$)}
+  \tadAxioma{Ant($i, p$)}{Lst(\IF $p$ $=$ $l$\DRef primero THEN NULL ELSE $l$\DRef primero FI, Pos($\ast l$, $p$))}
+
+  ~
+
+  {\small Nota: cuando $p$ $=$ NULL, Pos devuelve la longitud de la lista, lo cual está bien, porque significa que el iterador no tiene siguiente.}
+  \tadOperacion{Pos}{lst/l,puntero(nodo)/p}{puntero(nodo)}{Rep($\langle l, p\rangle$)}
+  \tadAxioma{Pos($l$,$p$)}{\IF $l$.primero $=$ $p$ $\lor$ $l$.longitud $=$ $0$ THEN $0$ ELSE $1$ $+$ Pos(FinLst($l$), $p$) FI}
+
+
+\end{Representacion}
+
+\bigskip
+
+\begin{Algoritmos}
+
+En esta sección se hace abuso de notación en los cálculos de álgebra de órdenes presentes en la justificaciones de los algoritmos. La operación de suma ``+'' denota secuencialización de operaciones con determinado orden de complejidad, y el símbolo de igualdad ``='' denota la pertenencia al orden de complejidad resultante.
+
+\medskip
+	
+ \Titulo{Algoritmos del módulo}
+  	\medskip
+  
+\begin{algorithm}[H]{\textbf{iVacía}() $\to$ $res$ : lst}
+    	\begin{algorithmic}[1]
+			 \State $res \gets \langle NULL, 0 \rangle$ \Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]{\textbf{iAgregarAdelante}(\Inout{l}{lst}, \In{a}{$\alpha$}) $\to$ $res$ : $iter$}
+	\begin{algorithmic}
+			 \State $it \gets CrearIt(l)$ 				\Comment $\Theta(1)$
+			 \State $AgregarComoSiguiente(it, a)$	\Comment $\Theta(copy(a))$
+			 \State $res \gets it$					\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(copy(a))$
+			\Statex \underline{Justificación:} El algoritmo tiene llamadas a funciones con costo $\Theta(1)$ y $\Theta(copy(a))$. Aplicando álgebra de órdenes: \\ $\Theta(1)$ + $\Theta(1)$ + $\Theta(copy(a))$ = $\Theta(copy(a))$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]{\textbf{iAgregarAtras}(\Inout{l}{lst}, \In{a}{$\alpha$}) $\to$ $res$ : $iter$}
+	\begin{algorithmic}[1]
+			 \State $it \gets CrearItUlt(l)$	\Comment $\Theta(1)$
+			 \State $AgregarComoSiguiente(it, a)$	\Comment $\Theta(copy(a))$
+			 \State $res \gets it$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(copy(a))$
+			\Statex \underline{Justificación:} El algoritmo tiene llamadas a funciones con costo $\Theta(1)$ y $\Theta(copy(a))$. Aplicando álgebra de órdenes:  $\Theta(1)$+$\Theta(copy(a))$+$\Theta(1)$ =  $\Theta(copy(a))$
+    	\end{algorithmic}
+\end{algorithm}
+	
+
+\begin{algorithm}[H]{\textbf{iEsVacía?}(\In{l}{lst}) $\to$ $res$ : $bool$}
+	\begin{algorithmic}[1]
+			 \State $res \gets (l.primero = NULL)$	 \Comment $\Theta(1)$
+    
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}	
+
+
+\begin{algorithm}[H]{\textbf{iFin}(\Inout{l}{lst})}
+	\begin{algorithmic}[1]
+			 \State $CrearIt(l).EliminarSiguiente()$	\Comment $\Theta(1)$ + $\Theta(1)$
+			 
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}	
+
+	
+\begin{algorithm}[H]{\textbf{iComienzo}(\Inout{l}{lst})}	
+	\begin{algorithmic}[1]
+			 \State $CrearItUlt(l).EliminarAnterior()$	\Comment $\Theta(1)$ + $\Theta(1)$
+    	    
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+			 
+    	\end{algorithmic}
+\end{algorithm}	
+	
+\begin{algorithm}[H]{\textbf{iPrimero}(\In{l}{lst}) $\to$ $res$ : $\alpha$}	
+	\begin{algorithmic}[1]
+		 \State $res \gets CrearIt(l).Siguiente()$	\Comment $\Theta(1)$ + $\Theta(1)$
+
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+		\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+    \end{algorithmic}
+\end{algorithm}	
+	
+\begin{algorithm}[H]{\textbf{iÚltimo}(\In{l}{lst}) $\to$ $res$ : $\alpha$}	
+	\begin{algorithmic}[1]
+    		% \State \textbf{iÚltimo}(\In{l}{lst}) $\to$ $res$ : $\alpha$
+			 \State $res \gets CrearItUlt(l).Anterior()$	\Comment $\Theta(1)$ + $\Theta(1)$
+    	    	    
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}	
+	
+\begin{algorithm}[H]{\textbf{iLongitud}(\In{l}{lst}) $\to$ $res$ : $nat$}	
+	\begin{algorithmic}[1]
+			 \State $res \gets l.longitud$	\Comment $\Theta(1)$ 
+    	
+		\medskip
+		\Statex \underline{Complejidad:}  $\Theta(1)$
+    \end{algorithmic}
+\end{algorithm}	
+	
+\begin{algorithm}[H]{\textbf{$\bullet$[$\bullet$]}(\In{l}{lst}, \In{i}{$nat$}) $\to$ $res$ : $\alpha$}	
+	\begin{algorithmic}[1]
+			 \State $it \gets CrearIt(l)$		\Comment $\Theta(1)$
+			 \State $indice \gets 0$		\Comment $\Theta(1)$
+			 \While{$indice < i$}			\Comment $\Theta(i)$
+			 	\State $Avanzar(it)$		\Comment $\Theta(1)$
+				\State $indice \gets indice + 1$		\Comment $\Theta(1)$
+			 \EndWhile
+			 
+			 \State $res \gets Siguiente(it)$		\Comment $\Theta(1)$
+    	
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(i)$
+		\Statex \underline{Justificación:} El algoritmo tiene un ciclo que se va a repetir $i$ veces. En cada ciclo se hacen realizan funciones con costo $\Theta(1)$. Aplicando álgebra de órdenes sabemos que el ciclo tiene un costo total del orden $\Theta(i)$. El costo total del algoritmo será de:  $\Theta(1)$ + $\Theta(1)$ + $\Theta(i)$*($\Theta(1)$+$\Theta(1)$) + $\Theta(1)$ = $\Theta(i)$
+    \end{algorithmic}
+\end{algorithm}	
+
+
+\begin{algorithm}[H]{\textbf{iCopiar}(\In{l}{lst}) $\to$ $res$ : $lst$}	
+	\begin{algorithmic}[1]
+			\State $res \gets Vacia()$	\Comment $\Theta(1)$
+			\State $it \gets CrearIt(l)$	\Comment $\Theta(1)$
+			
+			 \While{$HaySiguiente(it)$}	\Comment $\Theta(long(l))$
+			 	\State $AgregarAtras(res, Siguiente(it))$	\Comment $\Theta(copy(Siguiente(it)))$
+				\State $Avanzar(it)$	\Comment $\Theta(1)$
+			\EndWhile
+    	
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta\left(\sum_{i=1}^{long(l)}copy({l[i]})\right)$
+		\Statex \underline{Justificación:} El algoritmo cuenta con un ciclo que se repetirá long(l) veces (recorre la lista entera). Por cada ciclo realiza una copia del elemento, el costo será el de copiar el elemento. Por lo tanto, el costo total del ciclo será la suma de copiar cada uno de los elementos de la lista. El resto de las llamadas a funciones tiene costo $\Theta(1)$. Por lo tanto el costo total es de: $\Theta(1)$  + $\Theta(1)$ + $\Theta(long(l))$ * ($\Theta(copy(Siguiente(it)))$ + $\Theta(1)$ ) = $\Theta\left(\sum_{i=1}^{long(l)}copy({l[i]})\right)$
+    \end{algorithmic}
+\end{algorithm}	
+
+	
+\begin{algorithm}[H]{\textbf{$\bullet =_i \bullet$}(\In{l_1}{lst}, \In{l_2}{lst}) $\to$ $res$ : $bool$}
+	\begin{algorithmic}[1]
+			\State $it_1 \gets CrearIt(l_1)$	\Comment $\Theta(1)$
+			\State $it_2 \gets CrearIt(l_2)$ 	\Comment $\Theta(1)$
+			
+			 \While{$HaySiguiente(it_1) \land HaySiguiente(it_2) \land Siguiente(it_1) = Siguiente(it_2)$} \Comment [$\ast$]
+			 	\State $Avanzar(it_1)$ // $\Theta(1)$
+				\State $Avanzar(it_2)$	// $\Theta(1)$
+			\EndWhile
+			
+			\State $res \gets \neg(HaySiguiente(it_1) \lor HaySiguiente(it_2))$	\Comment $\Theta(1)$ + $\Theta(1)$
+    	
+		\medskip
+		\Statex \underline{Complejidad:} $\displaystyle\Theta\left(\sum_{i=1}^{\ell}{equal(l_1[i],l_2[i])}\right)$, donde $\ell = \min\{\text{long}(l_1),\text{long}(l_2)\}$. [$\ast$]
+		\Statex \underline{Justificación:} [$\ast$] Ya que continua hasta que alguna de las dos listas se acabe (la de menor longitud) y en cada ciclo compara los elementos de la lista.
+    \end{algorithmic}
+\end{algorithm}
+
+
+\Titulo{Algoritmos del iterador}	
+ 
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iCrearIt}(\In{l}{lst}) $\to$ $res$ : iter
+		
+			\State $res \gets \langle l.primero, l \rangle$ 	\Comment $\Theta(1)$
+    	
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+    \end{algorithmic}
+\end{algorithm}	
+
+  
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iCrearItUlt}(\In{l}{lst}) $\to$ $res$ : iter
+		
+			\State $res \gets \langle NULL, l \rangle$	\Comment $\Theta(1)$
+    	
+		\medskip
+		\Statex \underline{Complejidad:} $\Theta(1)$
+    \end{algorithmic}
+\end{algorithm}	
+
+
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iHaySiguiente}(\In{it}{iter}) $\to$ $res$ : $bool$
+		
+			\State $res \gets it.siguiente \neq NULL$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+	
+	
+\begin{algorithm}[H]	
+	\begin{algorithmic}[1]
+		\State \textbf{iHayAnterior}(\In{it}{iter}) $\to$ $res$ : $bool$
+		
+			\State $res \gets it.siguiente \neq (it.lista\rightarrow primero)$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+	
+	
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iSiguiente}(\In{it}{iter}) $\to$ $res$ : $\alpha$
+		
+			\State $res \gets (it.siguiente\rightarrow dato)$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+	
+	
+\begin{algorithm}[H]{\textbf{iAnterior}(\In{it}{iter}) $\to$ $res$ : $\alpha$}
+	\begin{algorithmic}[1]	
+			\State $res \gets (SiguienteReal(it)\rightarrow anterior\rightarrow dato)$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iAvanzar}(\Inout{it}{iter})
+		
+			\State $it.siguiente \gets (it.siguiente\rightarrow siguiente)$	\Comment $\Theta(1)$
+			\If{$it.siguiente = it.lista\rightarrow primero$}	\Comment $\Theta(1)$
+				\State $it.siguiente \gets NULL$	
+			\EndIf
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:}  $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+	
+	
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iRetroceder}(\Inout{it}{iter})
+		
+			\State $it.siguiente \gets (SiguienteReal(it)\rightarrow anterior)$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+	
+	
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iEliminarSiguiente}(\Inout{it}{iter})
+		
+			\State $puntero(nodo) \ temp \gets it.siguiente$
+			
+			\State $(tmp\rightarrow siguiente\rightarrow anterior) \gets (tmp\rightarrow anterior)$
+			\Comment{Reencadenamos los nodos // $\Theta(1)$}
+			\State $(tmp\rightarrow anterior\rightarrow siguiente) \gets (tmp\rightarrow siguiente)$
+		
+			\If{$(tmp\rightarrow siguiente) = (it.lista\rightarrow primero)$}
+			\Comment{Si borramos el último nodo, ya no hay siguiente // $\Theta(1)$}
+				\State $it.siguiente \gets NULL$
+			\Else
+			\Comment{Sino, avanzamos al siguiente	// $\Theta(1)$}
+				\State $it.siguiente \gets (tmp\rightarrow siguiente)$	
+			\EndIf
+			
+			\If{$tmp = (it.lista\rightarrow primero)$}
+			\Comment{Si borramos el primer nodo, hay que volver a setear el primero // $\Theta(1)$}
+				\State $(it.lista\rightarrow primero) \gets it.siguiente$
+			\EndIf
+			
+			\State $tmp \gets NULL$	 \Comment{Se libera la memoria ocupada por el nodo // $\Theta(1)$}
+			\State $(it.lista\rightarrow longitud) \gets (it.lista\rightarrow longitud) - 1$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ + $\Theta(1)$ + $\Theta(1)$ + $\Theta(1)$ =  $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+	
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iEliminarAnterior}(\Inout{it}{iter})
+		
+			\State $Retroceder(it)$	\Comment $\Theta(1)$
+			\State $EliminarSiguiente(it)$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iAgregarComoSiguiente}(\Inout{it}{iter}, \In{a}{$\alpha$})
+		
+			\State $AgregarComoAnterior(it, a)$		\Comment $\Theta(1)$
+			\State $Retroceder(it)$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ = $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+	
+
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\State \textbf{iAgregarComoAnterior}(\Inout{it}{iter}, \In{a}{$\alpha$})
+		
+			\State $puntero(nodo) \ sig \gets SiguienteReal(it)$
+			\State $puntero(nodo) \ nuevo \gets $ \textbf{\&} $\langle a, NULL, NULL \rangle$ \Comment{Reservamos memoria para el nuevo nodo	// $\Theta(1)$}
+			\If{$sig = NULL$}
+			\Comment{Asignamos los punteros de acuerdo a si el nodo es el primero o no en la lista circular	// $\Theta(1)$}
+				\State $(nuevo\rightarrow anterior) \gets nuevo$
+				\State $(nuevo\rightarrow siguiente) \gets nuevo$
+			\Else
+				\State $(nuevo\rightarrow anterior) \gets (sig\rightarrow anterior)$
+				\State $(nuevo\rightarrow siguiente) \gets sig$
+			\EndIf
+			
+			\State $(nuevo\rightarrow anterior\rightarrow siguiente) \gets nuevo$ \Comment{Reencadenamos los otros nodos	// $\Theta(1)$}
+			%\State $(nuevo\rightarrow anterior\rightarrow siguiente) \gets nuevo$ \Comment{Notar que no hay problema cuando nuevo es el único nodo	// $\Theta(1)$}
+			
+			\If{$it.siguiente = (it.lista\rightarrow primero)$}
+			\Comment{Cambiamos el primero en caso de que estemos agregando el primero	// $\Theta(1)$}
+				\State $(it.lista\rightarrow primero) \gets nuevo$
+			\EndIf
+			
+			\State $(it.lista\rightarrow longitud) \gets (it.lista\rightarrow longitud) + 1$	\Comment $\Theta(1)$
+
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+			\Statex \underline{Justificación:} $\Theta(1)$ + $\Theta(1)$ + $\Theta(1)$ +  $\Theta(1)$ =  $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+
+	
+\begin{algorithm}[H]
+	\begin{algorithmic}
+		\State \textbf{iSiguienteReal}(\In{it}{iter}) $\to$ $res$ : $puntero(nodo)$ \Comment{Esta es una operación privada que}
+			
+			\If{$it.siguiente = NULL$} \Comment{devuelve el siguiente como lista circular // $\Theta(1)$}
+				\State $res \gets (it.lista\rightarrow siguiente)$
+			\Else
+				\State $res \gets it.siguiente$
+			\EndIf
+			
+			\medskip
+			\Statex \underline{Complejidad:} $\Theta(1)$
+    	\end{algorithmic}
+\end{algorithm}
+%    
+	
+\end{Algoritmos}
+
+\newpage
+
+\section{Módulo Pila($\alpha$)}
+
+El módulo Pila provee una pila en la que sólo se puede acceder al tope de la misma.  Por este motivo, no incluye iteradores.
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(a)$ al costo de copiar el elemento $a \in \alpha$ (i.e., $copy$ es una función de $\alpha$ en $\mathbb{N}$).\footnote{Nótese que este es un abuso de notación, ya que no estamos describiendo $copy$ en función del tamaño de $a$.  A la hora de usarlo, habrá que realizar la traducción}
+
+\begin{Interfaz}
+
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}} $\alpha$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{\textwidth-2\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$}
+    {$res \igobs a$}
+    [$\Theta(copy(a))$]
+    [función de copia de $\alpha$'s]
+    %\TipoFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$} \qquad función de copia, con costo temporal $\Theta(copy(a))$.
+  }
+
+  \textbf{se explica con}: \tadNombre{Pila$(\alpha)$}.
+
+  \textbf{géneros}: \TipoVariable{pila$(\alpha)$}.
+
+  \InterfazFuncion{Vacía}{}{pila$(\alpha)$}%
+  []%
+  {$res$ $\igobs$ vacía}%
+  [$\Theta(1)$]
+  [genera una pila vacía.]
+
+  \InterfazFuncion{Apilar}{\Inout{p}{pila($\alpha$)}, \In{a}{$\alpha$}}{}
+  [$p \igobs p_0$]
+  {$p$ \igobs apilar($p, a$)}
+  [$\Theta(copy(a))$]
+  [apila $a$ en $p$]
+  [el elemento $a$ se apila por copia.]
+
+  \InterfazFuncion{EsVacia?}{\In{p}{pila($\alpha$)}}{bool}
+  {$res$ \igobs vacia?($p$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si la pila no contiene elementos]
+
+  \InterfazFuncion{Tope}{\In{p}{pila($\alpha$)}}{$\alpha$}
+  [$\lnot$vacía?($p$)]
+  {alias($res$ \igobs tope($p$))}
+  [$\Theta(1)$]
+  [devuelve el tope de la pila.]
+  [$res$ es modificable si y sólo si $p$ es modificable.]
+
+  \InterfazFuncion{Desapilar}{\Inout{p}{pila($\alpha$)}}{$\alpha$}
+  [$p \igobs p_0$ $\land$ $\lnot$vacía?($p$)]
+  {$p$ \igobs desapilar($p_0$) $\land$ $res$ \igobs tope($p$)}
+  [$\Theta(1)$]
+  [desapila el tope de $p$.]
+
+  \InterfazFuncion{Tamaño}{\In{p}{pila($\alpha$)}}{nat}
+  {$res$ \igobs tamaño($p$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de elementos apilados en $p$.]
+
+  \InterfazFuncion{Copiar}{\In{p}{pila($\alpha$)}}{pila($\alpha$)}
+  {$res \igobs p$}
+  [$\displaystyle\Theta\left(\sum_{i=1}^{t}copy({p[i]})\right) = O\left(t\max_{i=1}^t copy({p[i]})\right)$, donde $t$ $=$ tamaño($p$).]
+  [genera una copia nueva de la pila]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{p_1}{pila($\alpha$)}, \In{p_2}{pila($\alpha$)}}{bool}
+  {$res \igobs p_1 = p_2$}
+  [$\displaystyle\Theta\left(\sum_{i=1}^{t}{equal(p_1[i],p_2[i])}\right)$, donde $t = \min\{\text{tamaño}(p_1), \text{tamaño}(p_2)\}$.]
+  [compara $p_1$ y $p_2$ por igualdad, cuando $\alpha$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{a_1}{$\alpha$}, \In{a_2}{$\alpha$}}{bool}
+    {$res \igobs (a_1 = a_2)$}
+    [$\Theta(equal(a_1, a_2))$]
+    [función de igualdad de $\alpha$'s]
+  }}]
+  \Titulo{Especificación de las operaciones auxiliares utilizadas en la interfaz}
+
+  \begin{tad}{Pila Extendida($\alpha$)}
+    \parskip=0pt
+    \tadExtiende{\tadNombre{Pila($\alpha$)}}
+    
+    \tadTitulo{otras operaciones (no exportadas)}
+    \tadOperacion{$\bullet[\bullet]$}{pila($\alpha$)/p,nat/i}{$\alpha$}{$i$ $<$ tamaño($p$)}
+    \tadAxiomas
+    \tadAxioma{$p[i]$}{\IF $i = 0$ THEN tope($p$) ELSE desapilar($p$)$[i-1]$ FI}
+  \end{tad}
+
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  El objetivo de este módulo es implementar una pila lo más eficientemente posible, y eso se puede obtener utilizando una lista enlazada.  Claramente, cualquier lista representa una pila, donde el tope se encuentra o en el primer o en el último elemento.  En este caso, elegimos que el tope se encuentre en el primer elemento.
+
+  \begin{Estructura}{pila$(\alpha)$}[lista($\alpha$)]
+  \end{Estructura}
+
+  \RepFc[lista($\alpha$)][l]{true}
+
+  ~
+
+  \AbsFc[lista($\alpha$)]{pila($\alpha$)}[l]{\IF vacia?($l$) THEN vacía ELSE apilar(prim($l$), Abs(fin($l$))) FI}
+
+\end{Representacion}
+
+\begin{Algoritmos}
+  
+\end{Algoritmos}
+
+
+\section{Módulo Cola($\alpha$)}
+
+El módulo Cola provee una cola en la que sólo se puede acceder al proximo de la misma.  Por este motivo, no incluye iteradores.
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(a)$ al costo de copiar el elemento $a \in \alpha$ (i.e., $copy$ es una función de $\alpha$ en $\mathbb{N}$).\footnote{Nótese que este es un abuso de notación, ya que no estamos describiendo $copy$ en función del tamaño de $a$.  A la hora de usarlo, habrá que realizar la traducción}
+
+\begin{Interfaz}
+
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}} $\alpha$\\
+    \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{\textwidth-2\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$}
+    {$res \igobs a$}
+    [$\Theta(copy(a))$]
+    [función de copia de $\alpha$'s]
+    %\TipoFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$} \qquad función de copia, con costo temporal $\Theta(copy(a))$.
+  }
+
+  \textbf{se explica con}: \tadNombre{Cola$(\alpha)$}.
+
+  \textbf{géneros}: \TipoVariable{cola$(\alpha)$}.
+
+  \InterfazFuncion{Vacía}{}{cola$(\alpha)$}%
+  {$res$ $\igobs$ vacía}%
+  [$\Theta(1)$]
+  [genera una cola vacía.]
+
+  \InterfazFuncion{Encolar}{\Inout{c}{cola($\alpha$)}, \In{a}{$\alpha$}}{}
+  [$c \igobs c_0$]
+  {$p$ \igobs encolar($c, a$)}
+  [$\Theta(copy(a))$]
+  [encola $a$ a $c$]
+  [el elemento $a$ se encola por copia.]
+
+  \InterfazFuncion{EsVacia?}{\In{c}{cola($\alpha$)}}{bool}
+  {$res$ \igobs vacia?($c$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si la cola es vacía.]
+
+  \InterfazFuncion{Proximo}{\In{c}{cola($\alpha$)}}{$\alpha$}
+  [$\not$vacía?($c$)]
+  {alias($res$ \igobs proximo($c$))}
+  [$\Theta(1)$]
+  [devuelve el proximo de la cola.]
+  [$res$ es modificable si y sólo si $p$ es modificable.]
+
+  \InterfazFuncion{Desencolar}{\Inout{c}{cola($\alpha$)}}{}
+  [$c \igobs c_0$ $\land$ $\lnot$vacía?($c$)]
+  {$c$ \igobs desacolar($c_0$)}
+  [$\Theta(1)$]
+  [desencola el proximo de $c$.]
+
+  \InterfazFuncion{Tamaño}{\In{c}{cola($\alpha$)}}{nat}
+  {$res$ \igobs tamaño($c$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de elementos encolados en $c$.]
+
+  \InterfazFuncion{Copiar}{\In{c}{cola($\alpha$)}}{cola($\alpha$)}
+  {$res \igobs c$}
+  [$\displaystyle\Theta\left(\sum_{i=1}^{t}copy({c[i]})\right)$, donde $t$ $=$ tamaño($c$)]
+  [genera una copia nueva de la cola]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{c_1}{cola($\alpha$)}, \In{c_2}{cola($\alpha$)}}{bool}
+  {$res \igobs c_1 = c_2$}
+  [$\displaystyle\Theta\left(\sum_{i=1}^{t}{equal(c_1[i],c_2[i])}\right)$, donde $t = \min\{\text{tamaño}(c_1), \text{tamaño}(c_2)\}$.]
+  [compara $c_1$ y $c_2$ por igualdad, cuando $\alpha$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{a_1}{$\alpha$}, \In{a_2}{$\alpha$}}{bool}
+    {$res \igobs (a_1 = a_2)$}
+    [$\Theta(equal(a_1, a_2))$]
+    [función de igualdad de $\alpha$'s]
+  }}]
+
+  \Titulo{Especificación de las operaciones auxiliares utilizadas en la interfaz}
+
+  \begin{tad}{Cola Extendida($\alpha$)}
+    \parskip=0pt
+    \tadExtiende{\tadNombre{Cola($\alpha$)}}
+    
+    \tadTitulo{otras operaciones (no exportadas)}
+    \tadOperacion{$\bullet[\bullet]$}{cola($\alpha$)/p,nat/i}{$\alpha$}{$i$ $<$ tamaño($p$)}
+    \tadAxiomas
+    \tadAxioma{$c[i]$}{\IF $i = 0$ THEN proximo($c$) ELSE desencolar($c$)$[i-1]$ FI}
+  \end{tad}
+
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  El objetivo de este módulo es implementar una cola lo más eficientemente posible, y eso se puede obtener utilizando una lista enlazada.  Claramente, cualquier lista representa una cola, donde el proximo se encuentra o en el primer o en el último elemento.  En este caso, elegimos que el proximo se encuentre en el primer elemento.
+
+  \begin{Estructura}{cola$(\alpha)$}[lista($\alpha$)]
+  \end{Estructura}
+
+  \RepFc[lista($\alpha$)][l]{true}
+
+  ~
+
+  \AbsFc[lista($\alpha$)]{cola($\alpha$)}[l]{\IF vacia?($l$) THEN vacía ELSE encolar(ult($l$), Abs(com($l$))) FI}
+
+\end{Representacion}
+
+\begin{Algoritmos}
+  
+\end{Algoritmos}
+
+
+\section{Módulo Vector($\alpha$)}
+
+El módulo Vector provee una secuencia que permite obtener el $i$-ésimo elemento de forma eficiente.  La inserción de elementos es eficiente cuando se realiza al final de la misma, si se utiliza un análisis amortizado (i.e., $n$ inserciones consecutivas cuestan $O(n)$), aunque puede tener un costo lineal en peor caso.  La inserción en otras posiciones no es tan eficiente, ya que requiere varias copias de elementos.  El borrado de los últimos elementos es eficiente, no así el borrado de los elementos intermedios.  
+
+% No se recomienda utilizar las inserciones y borrados de elementos intermedios cuando $\alpha$ es un tipo cuya copia es costosa.  Conviene, en tal caso, hacer que $\alpha$ sea un puntero a la estructura, y encargarse de la creación y borrado de la memoria por fuera.
+
+Una consideración a tener en cuenta, es que el espacio utilizado por la estructura es el máximo espacio utilizado en cualquier momento del programa.  Es decir, si se realizan $n$ inserciones seguidas de $n$ borrados, el espacio utilizado es $O(n)$ por el espacio de cada $\alpha$.  Si fuera necesario borrar esta memoria, se puede crear una copia del vector con los elementos sobrevivientes, borrando la copia vieja.
+
+En cuanto al recorrido de los elementos, como los mismos se pueden recorrer con un índice, no se proveen iteradores.
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(a)$ al costo de copiar el elemento $a \in \alpha$ (i.e., $copy$ es una función de $\alpha$ en $\mathbb{N}$), y vamos a utilizar
+\[f(n) = \begin{cases} n & \qquad \text{si $n = 2^k$ para algún $k$} \\
+                      1 & \qquad \text{en caso contrario}
+        \end{cases}
+\]
+para describir el costo de inserción de un elemento.  Vale la pena notar que $\displaystyle\sum_{i=1}^n \frac{f(j+i)}{n} \to 1$ cuando $n \to \infty$, para todo $j \in \mathbb{N}$.  En otras palabras, la inserción consecutiva de $n$ elementos costará $O(1)$ copias por elemento, en términos asintóticos.
+
+\begin{Interfaz}
+
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}} $\alpha$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{\textwidth-2\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$}
+    {$res \igobs a$}
+    [$\Theta(copy(a))$]
+    [función de copia de $\alpha$'s.]
+    %\TipoFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$} \qquad función de copia, con costo temporal $\Theta(copy(a))$.
+  }
+
+  \textbf{se explica con}: \tadNombre{Secu$(\alpha)$}.
+
+  \textbf{géneros}: \TipoVariable{vector$(\alpha)$}.
+
+  \InterfazFuncion{Vacía}{}{vector$(\alpha)$}%
+  {$res \igobs \secuencia{}$}%
+  [$\Theta(1)$]
+  [genera un vector vacío.]
+
+  \InterfazFuncion{AgregarAtras}{\Inout{v}{vector($\alpha$)}, \In{a}{$\alpha$}}{}
+  [$v \igobs v_0$]
+  {$v \igobs v_0 \circ a$}
+  [$\Theta$($f$(long($v$)) $+$ $copy(a)$)]
+  [agrega el elemento $a$ como último elemento del vector.]
+  [el elemento $a$ se agrega por copia.  Cualquier referencia que se tuviera al vector queda invalidada cuando long($v$) es potencia de $2$.]
+
+  \InterfazFuncion{EsVacío?}{\In{v}{vector($\alpha$)}}{bool}
+  {$res$ $\igobs$ vacia?($v$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si $v$ esta vacío]
+
+  \InterfazFuncion{Comienzo}{\Inout{v}{vector($\alpha$)}}{}
+  [$v \igobs v_0$ $\land$ $\lnot$vacía?($v$)]
+  {$v$ $\igobs$ com($v_0$)}
+  [$\Theta(1)$]
+  [elimina el último elemento de $v$.]
+
+  \InterfazFuncion{TomarPrimeros}{\Inout{v}{vector($\alpha$)}, \In{n}{nat}}{}
+  [$v \igobs v_0$]
+  {$v$ $\igobs$ Tomar($v_0$, $n$)}
+  [$\Theta(1)$]
+  [elimina los últimos $\max$\{long($v$) - $n$, $0$\} elementos del vector, i.e., se queda con los primeros $n$ elementos del vector.]
+
+  \InterfazFuncion{TirarUltimos}{\Inout{v}{vector($\alpha$)}, \In{n}{nat}}{}
+  [$v \igobs v_0$]
+  {$v$ $\igobs$ Tomar($v_0$, long($v_0$) - $n$)}
+  [$\Theta(1)$]
+  [elimina los últimos $\max$\{long($v$), $n$\} elementos del vector.]
+
+  \InterfazFuncion{Ultimo}{\In{v}{vector($\alpha$)}}{$\alpha$}
+  [$\lnot$vacía?($v$)]
+  {alias($res$ $\igobs$ ult($v$))}
+  [$\Theta(1)$]
+  [devuelve el último elemento del vector.]
+  [$res$ es modificable si y sólo si $v$ es modificable.]
+
+  \InterfazFuncion{Longitud}{\In{l}{vector($\alpha$)}}{nat}
+  {$res$ $\igobs$ long($v$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de elementos que contiene el vector.]
+
+  \InterfazFuncion{$\bullet$[$\bullet$]}{\In{v}{vector($\alpha$)}, \In{i}{nat}}{$\alpha$}
+  [$i$ $<$ long($v$)]
+  {alias($res$ $\igobs$ iesimo($v$, $i$))}
+  [$\Theta(1)$]
+  [devuelve el elemento que se encuentra en la $i$-ésima posición del vector en base $0$.  Es decir, {$v[i]$} devuelve el elemento que se encuentra en la posición $i+1$.]  
+  [$res$ es modificable si y sólo si $v$ es modificable.]
+
+  \InterfazFuncion{Agregar}{\Inout{v}{vector($\alpha$)}, \In{i}{nat}, \In{a}{$\alpha$}}{}
+  [$v \igobs v_0$ $\land$ $i$ $\leq$ long($v$)]
+  {$v$ $\igobs$ Agregar($v$, $i$, $a$)}
+  [$\Theta$($f$(long($v$)) $+$ long($v$) $-$ $i$ $+$ $copy(a)$)]
+  [agrega el elemento $a$ a $v$, de forma tal que ocupe la posición $i$.]
+  [el elemento $a$ se agrega por copia.  Cualquier referencia que se tuviera al vector queda invalidada cuando long($v$) es potencia de $2$.]
+
+  \InterfazFuncion{Eliminar}{\Inout{v}{vector($\alpha$)}, \In{i}{nat}}{}
+  [$v \igobs v_0$ $\land$ $i$ $<$ long($v$)]
+  {$v$ $\igobs$ Eliminar($v$, $i$)}
+  [$\Theta$(long($v$) $-$ $i$)]
+  [elimina el elemento que ocupa la posición $i$ de $v$.]
+
+  \InterfazFuncion{Copiar}{\In{v}{vector($\alpha$)}}{vector($\alpha$)}
+  {$res \igobs v$}
+  [$\displaystyle\Theta\left(\sum_{i=1}^{\ell}copy({v[i]})\right)$, donde $\ell$ $=$ long($v$).]
+  [genera una copia nueva del vector.]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{v_1}{vector($\alpha$)}, \In{v_2}{vector($\alpha$)}}{bool}
+  {$res \igobs v_1 = v_2$}
+  [$\displaystyle\Theta\left(\sum_{i=1}^\ell{equal(v_1[i],v_2[i])}\right)$, donde $\ell = \min\{\text{long}(v_1), \text{long}(v_2)\}$.]
+  [compara $v_1$ y $v_2$ por igualdad, cuando $\alpha$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{a_1}{$\alpha$}, \In{a_2}{$\alpha$}}{bool}
+    {$res \igobs (a_1 = a_2)$}
+    [$\Theta(equal(a_1, a_2))$]
+    [función de igualdad de $\alpha$'s]
+  }}]
+
+  \Titulo{Especificación de las operaciones auxiliares utilizadas en la interfaz}
+
+  \begin{tad}{Secuencia Extendida($\alpha$)}
+    \parskip=0pt
+    \tadExtiende{\tadNombre{Secuencia($\alpha$)}}
+    
+    \tadTitulo{otras operaciones (exportadas)}
+    \tadAlinearFunciones{Eliminar}{secu($\alpha$)/s,nat/i,$\alpha$/a}
+    \tadOperacion{Agregar}{secu($\alpha$)/s,nat/i,$\alpha$/a}{secu($\alpha$)}{$i$ $\leq$ long($s$)}
+    \tadOperacion{Eliminar}{secu($\alpha$)/s,nat/i}{secu($\alpha$)}{$i$ $<$ long($s$)}
+    \tadOperacion{Tomar}{secu($\alpha$),nat}{secu($\alpha$)}{}
+    \tadTitulo{otras operaciones (no exportadas)}
+    \tadNoAlinearFunciones
+    \tadOperacion{Tirar}{secu($\alpha$),nat}{secu($\alpha$)}{}
+    \tadAxiomas
+    \tadAlinearAxiomas{Eliminar($s,i,a$)}
+    \tadAxioma{Agregar($s,i,a$)}{(Tomar($n$, $i$) $\circ$ $a$) \& Tirar($n$, $i$)}
+    \tadAxioma{Eliminar($s,i,a$)}{(Tomar($n$, $i-1$) \& Tirar($n$, $i$)}
+    \tadAxioma{Tomar($s,n$)}{\IF $n = 0$ $\lor$ vacia?($s$) THEN \secuencia{} ELSE \secuencia{prim($s$)}[Tomar(fin($s$), $n-1$)] FI}
+    \tadAxioma{Tirar($s,n$)}{\IF $n = 0$ $\lor$ vacia?($s$) THEN $s$ ELSE Tirar(fin($s$), $n-1$) FI}
+  \end{tad}
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  La idea de este módulo es tener una lista donde el $i$-ésimo se puede obtener en tiempo $O(1)$.  Para esto, necesitamos usar algún tipo de acceso aleatorio a los elementos, que se consigue utilizando un arreglo.  Ademas, necesitamos que el agregado de elementos tome $O(1)$ copias cuando analizamos el tiempo amortizado, i.e., $O(f(n))$ copias.  Para lograr esto, podemos duplicar el tamaño del arreglo cuando este se llena.
+
+  \begin{Estructura}{vector$(\alpha)$}[vec]
+    \begin{Tupla}[vec]
+      \tupItem{elementos}{arreglo\_dimensionable de puntero($\alpha$)}%
+      \tupItem{longitud}{nat}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[vec][v]{($\exists k$: nat)(tam($v$.elementos) $=$ $2^k$ $\land$ $v$.longitud $\leq$ tam($v$.elementos) $\land$\\ ($\forall i$: nat)($0$ $\leq$ $i$ $<$ $v$.longitud $\impluego$ def?($v$.elementos, $i$)) $\land$\\ 
+  ($\forall i,j$: nat)($0$ $\leq$ $i$ $<$ $j$ $<$ $v$.longitud $\impluego$ $v$.elementos[$i$] $\neq$ $v$.elementos[$j$]))}\mbox{}
+
+  ~
+
+  \AbsFc[vec]{secu($\alpha$)}[v]{\IF $v$.longitud $=$ $0$ THEN \secuencia{} ELSE Abs($\langle v.$elementos, $v$.longitud $-$ $1\rangle$) $\circ$ {$*$($v$.elementos[$v$.longitud $-$ $1$])} FI}
+
+\end{Representacion}
+
+\begin{Algoritmos}
+  
+\end{Algoritmos}
+
+\section{Módulo Diccionario Lineal($\kappa$, $\sigma$)}
+
+El módulo Diccionario Lineal provee un diccionario básico en el que se puede definir, borrar, y testear si una clave está definida en tiempo lineal.  Cuando ya se sabe que la clave a definir no esta definida en el diccionario, la definición se puede hacer en tiempo $O(1)$.
+
+En cuanto al recorrido de los elementos, se provee un iterador bidireccional que permite recorrer y eliminar los elementos de $d$ como si fuera una secuencia de pares $\kappa,\sigma$.
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(k)$ al costo de copiar el elemento $k \in \kappa \cup \sigma$ y $equal(k_1, k_2)$ al costo de evaluar si dos elementos $k_1, k_2 \in \kappa$ son iguales (i.e., $copy$ y $equal$ son funciones de $\kappa \cup \sigma$ y $\kappa \times \kappa$ en $\mathbb{N}$, respectivamente).\footnote{Nótese que este es un abuso de notación, ya que no estamos describiendo $copy$ y $equal$ en función del tamaño de $k$.  A la hora de usarlo, habrá que realizar la traducción.}
+
+\begin{Interfaz}
+
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}}$\kappa,\sigma$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{k_1}{$\kappa$}, \In{k_2}{$\kappa$}}{bool}
+    {$res \igobs (k_1 = k_2)$}
+    [$\Theta(equal(k_1, k_2))$]
+    [función de igualdad de $\kappa$'s]
+  }%
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{k}{$\kappa$}}{$\kappa$}
+    {$res \igobs k$}
+    [$\Theta(copy(k))$]
+    [función de copia de $\kappa$'s]
+  }\\[2ex]
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{s}{$\sigma$}}{$\sigma$}
+    {$res \igobs s$}
+    [$\Theta(copy(s))$]
+    [función de copia de $\sigma$'s]
+  }
+
+  \textbf{se explica con}: \tadNombre{Diccionario$(\kappa, \sigma)$}, \tadNombre{Iterador Bidireccional(tupla($\kappa,\sigma$))}.
+
+  \textbf{géneros}: \TipoVariable{dicc$(\kappa, \sigma)$}, \TipoVariable{itDicc($\kappa, \sigma$)}.
+
+  \Titulo{Operaciones básicas de diccionario}
+
+  \InterfazFuncion{Vacío}{}{dicc$(\kappa,\sigma)$}%
+  {$res$ $\igobs$ vacio}%
+  [$\Theta(1)$]
+  [genera un diccionario vacío.]
+
+  \InterfazFuncion{Definir}{\Inout{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}, \In{s}{$\sigma$}}{itDicc($\kappa, \sigma$)}
+  [$d \igobs d_0$]
+  {$d$ $\igobs$ definir($d, k, s$) $\land$ haySiguiente($res$) $\land_L$ Siguiente($res$) $=$ $\langle k,s\rangle$ $\land$ alias(esPermutación(SecuSuby($res$), $d$))}
+  [$\displaystyle\Theta\left(\sum_{k' \in K}equal(k,k') + copy(k) + copy(s)\right)$, donde $K$ $=$ claves($d$)]
+  [define la clave $k$ con el significado $s$ en el diccionario.  Retorna un iterador al elemento recién agregado.]
+  [los elementos $k$ y $s$ se definen por copia.  El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}. Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique el $d$ sin utilizar las funciones del iterador.]
+
+
+  \InterfazFuncion{DefinirRapido}{\Inout{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}, \In{s}{$\sigma$}}{itDicc($\kappa, \sigma$)}
+  [$d \igobs d_0$ $\land$ $\lnot$definido?($d$, $k$)]
+  {$d$ $\igobs$ definir($d, k, s$) $\land$ haySiguiente($res$) $\land_L$ Siguiente($res$) $=$ $\langle k,s\rangle$ $\land$ esPermutación(SecuSuby($res$), $d$)}
+  [$\Theta(copy(k) + copy(s))$]
+  [define la clave $k$ $\not\in$ claves($d$) con el significado $s$ en el diccionario. Retorna un iterador al elemento recién agregado.]
+  [los elementos $k$ y $s$ se definen por copia. El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}. Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique el $d$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{Definido?}{\In{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}}{bool}
+  {$res$ $\igobs$ def?($d$, $k$)}
+  [$\Theta(\sum_{k' \in K}equal(k,k'))$, donde $K$ $=$ claves($d$)]
+  [devuelve \texttt{true} si y sólo $k$ está definido en el diccionario.]
+
+  \InterfazFuncion{Significado}{\In{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}}{$\sigma$}
+  [def?($d$, $k$)]
+  {alias($res$ $\igobs$ Significado($d$, $k$))}
+  [$\Theta(\sum_{k' \in K}equal(k,k'))$, donde $K$ $=$ claves($d$)]
+  [devuelve el significado de la clave $k$ en $d$.]
+  [$res$ es modificable si y sólo si $d$ es modificable.]
+
+  \InterfazFuncion{Borrar}{\Inout{d}{dicc($\kappa,\sigma$)}, \In{k}{$\kappa$}}{}
+  [$d = d_0$ $\land$ def?($d$, $k$)]
+  {$d$ $\igobs$ borrar($d_0, k$)}
+  [$\Theta(\sum_{k' \in K}equal(k,k'))$, donde $K$ $=$ claves($d$)]
+  [elimina la clave $k$ y su significado de $d$.]
+
+  \InterfazFuncion{\#Claves}{\In{d}{dicc($\kappa,\sigma$)}}{nat}
+  {$res$ $\igobs$ \#claves($d$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de claves del diccionario.]
+
+  \InterfazFuncion{Copiar}{\In{d}{dicc($\kappa,\sigma$)}}{dicc($\kappa,\sigma$)}
+  {$res \igobs d$}
+  [$\displaystyle\Theta\left(\sum_{k \in K}\left(copy(k) + copy(\text{significado}(k,d))\right)\right)$, donde $K$ $=$ claves($d$)]
+  [genera una copia nueva del diccionario.]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{d_1}{dicc($\kappa,\sigma$)}, \In{d_2}{dicc($\kappa,\sigma$)}}{bool}
+  {$res \igobs c_1 = c_2$}
+  [$\displaystyle O\left(\sum_{\substack{k_1 \in K_1\\k_2\in K_2}}equal(\langle k_1,s_1\rangle, \langle k_2, s_2 \rangle)\right)$, donde $K_i$ $=$ claves($d_i$) y $s_i$ $=$ significado($d_i, k_i$), $i \in \{1,2\}$.]
+  [compara $d_1$ y $d_2$ por igualdad, cuando $\sigma$ posee operación de igualdad.]
+  []%no hay aliasing
+  [{\parbox[t]{\textwidth-3cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{s_1}{$\sigma$}, \In{s_2}{$\sigma$}}{bool}
+    {$res \igobs (s_1 = s_2)$}
+    [$\Theta(equal(s_1, s_2))$]
+    [función de igualdad de $\sigma$'s]
+  }}]
+
+  \Titulo{Operaciones del iterador}
+
+  El iterador que presentamos permite modificar el diccionario recorrido, eliminando elementos.  Sin embargo, cuando el diccionario es no modificable, no se pueden utilizar las funciones de eliminación.  Además, las claves de los elementos iterados no pueden modificarse nunca, por cuestiones de implementación.  Cuando $d$ es modificable, decimos que $it$ es modificable.
+
+  Para simplificar la notación, vamos a utilizar clave y significado en lugar de $\Pi_1$ y $\Pi_2$ cuando utilicemos una tupla($\kappa,\sigma$).
+
+  \InterfazFuncion{CrearIt}{\In{d}{dicc($\kappa,\sigma$)}}{itDicc($\kappa,\sigma$)}
+  {alias(esPermutación(SecuSuby($res$), $d$)) $\land$ vacia?(Anteriores($res$))}
+  [$\Theta(1)$]
+  [crea un iterador bidireccional del diccionario, de forma tal que \NombreFuncion{HayAnterior} evalúe a \texttt{false} (i.e., que se pueda recorrer los elementos aplicando iterativamente \NombreFuncion{Siguiente}).]
+  [El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.  Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique $d$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{HaySiguiente}{\In{it}{itDicc($\kappa,\sigma$)}}{bool}
+  {$res$ $\igobs$ haySiguiente?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para avanzar.]
+
+  \InterfazFuncion{HayAnterior}{\In{it}{itDicc($\kappa,\sigma$)}}{bool}
+  {$res$ $\igobs$ hayAnterior?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para retroceder.]
+
+  \InterfazFuncion{Siguiente}{\In{it}{itDicc($\kappa,\sigma$)}}{tupla($\kappa, \sigma$)}
+  [HaySiguiente?($it$)]
+  {alias($res$ $\igobs$ Siguiente($it$))}
+  [$\Theta(1)$]
+  [devuelve el elemento siguiente del iterador.]
+  [$res$.significado es modificable si y sólo si $it$ es modificable.  En cambio, $res$.clave no es modificable.]
+
+  \InterfazFuncion{SiguienteClave}{\In{it}{itDicc($\kappa,\sigma$)}}{$\kappa$}
+  [HaySiguiente?($it$)]
+  {alias($res$ $\igobs$ Siguiente($it$).clave)}
+  [$\Theta(1)$]
+  [devuelve la clave del elemento siguiente del iterador.]
+  [$res$ no es modficable.]
+
+  \InterfazFuncion{SiguienteSignificado}{\In{it}{itDicc($\kappa,\sigma$)}}{$\sigma$}
+  [HaySiguiente?($it$)]
+  {alias($res$ $\igobs$ Siguiente($it$).significado)}
+  [$\Theta(1)$]
+  [devuelve el significado del elemento siguiente del iterador.]
+  [$res$ es modificable si y sólo si $it$ es modficable.]
+
+  \InterfazFuncion{Anterior}{\In{it}{itDicc($\kappa,\sigma$)}}{tupla(clave: $\kappa$, significado: $\sigma$)}
+  [HayAnterior?($it$)]
+  {alias($res$ $\igobs$ Anterior($it$))}
+  [$\Theta(1)$]
+  [devuelve el elemento anterior del iterador.]
+  [$res$.\TipoVariable{significado} es modificable si y sólo si $it$ es modificable.  En cambio, $res$.\TipoVariable{clave} no es modificable.]
+
+  \InterfazFuncion{AnteriorClave}{\In{it}{itDicc($\kappa,\sigma$)}}{$\kappa$}
+  [HayAnterior?($it$)]
+  {alias($res$ $\igobs$ Anterior($it$).clave)}
+  [$\Theta(1)$]
+  [devuelve la clave del elemento anterior del iterador.]
+  [$res$ no es modficable.]
+
+  \InterfazFuncion{AnteriorSignificado}{\In{it}{itDicc($\kappa,\sigma$)}}{$\sigma$}
+  [HayAnterior?($it$)]
+  {alias($res$ $\igobs$ Anterior($it$).significado)}
+  [$\Theta(1)$]
+  [devuelve el significado del elemento anterior del iterador.]
+  [$res$ es modificable si y sólo si $it$ es modficable.]
+
+
+  \InterfazFuncion{Avanzar}{\Inout{it}{itDicc($\kappa,\sigma$)}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ Avanzar($it_0$)}
+  [$\Theta(1)$]
+  [avanza a la posición siguiente del iterador.]
+
+  \InterfazFuncion{Retroceder}{\Inout{it}{itDicc($\kappa,\sigma$)}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ Retroceder($it_0$)}
+  [$\Theta(1)$]
+  [retrocede a la posición anterior del iterador.]
+
+  \InterfazFuncion{EliminarSiguiente}{\Inout{it}{itDicc($\kappa,\sigma$)}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ EliminarSiguiente($it_0$)}
+  [$\Theta(1)$]
+  [elimina del diccionario la clave del elemento que se encuentra en la posición siguiente.]
+
+  \InterfazFuncion{EliminarAnterior}{\Inout{it}{itDicc($\kappa,\sigma$)}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ EliminarAnterior($it_0$)}
+  [$\Theta(1)$]
+  [elimina del diccionario la clave del elemento que se encuentra en la posición anterior.]
+
+  \Titulo{Especificación de las operaciones auxiliares utilizadas en la interfaz}
+
+  \begin{tad}{Diccionario Extendido($\kappa$, $\sigma$)}
+    \parskip=0pt
+    \tadExtiende{\tadNombre{Diccionario($\kappa,\sigma$)}}
+    
+    \tadTitulo{otras operaciones (no exportadas)}
+    \tadOperacion{esPermutacion?}{secu({tupla($\kappa,\sigma$)}),dicc({$\kappa,\sigma$)}}{bool}{}
+    \tadOperacion{secuADicc}{secu({tupla($\kappa,\sigma$)})}{dicc($\kappa,\sigma$)}{}
+    \tadAxiomas
+    \tadAxioma{esPermutacion?($s,d$)}{$d$ $=$ secuADicc($s$) $\land$ \#claves($d$) $=$ long($s$)}
+    \tadAxioma{secuADicc($s$)}{\IF vacia?($s$) THEN vacio ELSE definir($\Pi_1$(prim($s$)), $\Pi_2$(prim($s$)), secuADict(fin($s$))) FI}
+  \end{tad}
+
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  \Titulo{Representación del diccionario}
+
+  Hay dos opciones básicas para representar el diccionario lineal, con sus pros y sus contras.  La que parece más natural, es representarlo como un conjunto de tuplas sobre secuencia (ver Seccion~\ref{sec:ConjuntoLineal}).  La ventaja de esta representación es que el invariante de representación y la función de abstracción resultan un poco más naturales.  La desventaja es que, como en un conjunto no se pueden modificar los valores, no podríamos modificar el significado de una clave dada.  Esto es contrario a lo que queremos.  Una opción alternativa por este camino, es definir el diccionario como un conjunto de claves y conjunto de significados, donde cada clave guarda un iterador o puntero a un significado.  Esta opción puede resultar viable, pero es un poco molesta.
+
+  La representación que optamos consiste en definir al diccionario como dos listas, una de claves y otra de significados.  La lista de claves no puede tener repetidos, mientras que la de significados si puede.  Ademas, la $i$-ésima clave de la lista se asocia al $i$-ésimo significado.  En cierto sentido, estamos definiendo al diccionario como un conjunto de claves y una secuencia de significados.  Para no repetir la representación y el codigo del diccionario en el conjunto, vamos a representar al conjunto como un diccionario (ver Sección~\ref{sec:ConjuntoLineal}).  Si bien esto no parece ser una solución natural, tampoco es tan rara, y nos permite resolver el problema reutilizando la mayoría del codigo.
+
+  \begin{Estructura}{dicc$(\kappa,\sigma)$}[dic]
+    \begin{Tupla}[dic]%
+      \tupItem{claves}{lista($\kappa$)}%
+      \tupItem{significados}{lista($\sigma$}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[dic][d]{\#claves(secuADicc($d$.claves)) $=$ long($d$.claves) $\land$ long($d$.claves) = long($d$.significados)}
+
+  ~
+
+  \AbsFc[dicc]{dicc($\kappa,\sigma$)}[d]{\IF vacía?($d$.claves) THEN vacío ELSE definir(prim($d$).claves, prim($d$).significado, Abs(fin($d$))) FI}
+
+  \Titulo{Representación del iterador}
+
+  El iterador del diccionario es simplemente un par de iteradores a las listas correspondientes.  Lo único que hay que pedir es que se satisfaga el Rep de este par de listas.
+
+  \begin{Estructura}{itDicc($\kappa$, $\sigma$)}[itDic]
+    \begin{Tupla}[itDic]%
+      \tupItem{claves}{itLista($\kappa$)}%
+      \tupItem{significados}{itLista($\sigma$)}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[itDic][it]{Rep($\langle$SecuSuby($it$.claves), SecuSuby($it$.significados)$\rangle$)}
+
+  ~
+
+  \AbsFc[itDic]{itBi(tupla($\kappa$, $\sigma$))}[it]{CrearItBi(Join(Anteriores($it$.claves), Anteriores($it$.significados)), \\\phantom{CrearItBi(}Join(Siguientes($it$.claves), Siguientes($it$.significados)))}\mbox{}
+
+  ~
+
+  \tadOperacion{Join}{secu($\alpha$)/a,secu($\beta$)/b}{secu(tupla($\alpha,\beta$))}{long($a$) $=$ long($b$)}
+  \tadAxioma{Join($a$, $b$)}{\IF vacia?($a$) THEN \secuencia{} ELSE \secuencia{$\langle${prim($a$), prim($b$)}$\rangle$}[Join(Fin($a$), Fin($b$))] FI}
+
+\end{Representacion}
+
+\begin{Algoritmos}
+  
+\end{Algoritmos}
+
+\section{Módulo Conjunto Lineal($\alpha$)}
+\label{sec:ConjuntoLineal}
+
+El módulo Conjunto Lineal provee un conjunto básico en el que se puede insertar, eliminar, y testear pertenencia en tiempo lineal (de comparaciones y/o copias).  Cuando ya se sabe que el elemento a insertar no pertenece al conjunto, la inserción se puede hacer con complejidad de $O(1)$ copias.
+
+En cuanto al recorrido de los elementos, se provee un iterador bidireccional que permite eliminar los elementos iterados.  
+
+Para describir la complejidad de las operaciones, vamos a llamar $copy(a)$ al costo de copiar el elemento $a \in \alpha$ y $equal(a_1, a_2)$ al costo de evaluar si dos elementos $a_1, a_2 \in \alpha$ son iguales (i.e., $copy$ y $equal$ son funciones de $\alpha$ y $\alpha \times \alpha$ en $\mathbb{N}$, respectivamente).\footnote{Nótese que este es un abuso de notación, ya que no estamos describiendo $copy$ y $equal$ en función del tamaño de $a$.  A la hora de usarlo, habrá que realizar la traducción.}
+
+
+\begin{Interfaz}
+
+  \textbf{parámetros formales}\hangindent=2\parindent\\
+  \parbox{1.7cm}{\textbf{géneros}}$\alpha$\\
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{$\bullet = \bullet$}{\In{a_1}{$\alpha$}, \In{a_2}{$\alpha$}}{bool}
+    {$res \igobs (a_1 = a_2)$}
+    [$\Theta(equal(a_1, a_2))$]
+    [función de igualdad de $\alpha$'s]
+  }%
+  \parbox[t]{1.7cm}{\textbf{función}}\parbox[t]{.5\textwidth-\parindent-1.7cm}{%
+    \InterfazFuncion{Copiar}{\In{a}{$\alpha$}}{$\alpha$}
+    {$res \igobs a$}
+    [$\Theta(copy(a))$]
+    [función de copia de $\alpha$'s]
+  }
+
+
+  \textbf{se explica con}: \tadNombre{Conj$(\alpha)$}, \tadNombre{Iterador Bidireccional Modificable($\alpha$)}.
+
+  \textbf{géneros}: \TipoVariable{conj$(\alpha)$}, \TipoVariable{itConj($\alpha$)}.
+
+  \Titulo{Operaciones básicas de conjunto}
+
+  \InterfazFuncion{Vacío}{}{conj$(\alpha)$}%
+  {$res \igobs \emptyset$}%
+  [$\Theta(1)$]
+  [genera un conjunto vacío.]
+
+  \InterfazFuncion{Agregar}{\Inout{c}{conj($\alpha$)}, \In{a}{$\alpha$}}{itConj($\alpha$)}
+  [$c \igobs c_0$]
+  {$c \igobs Ag(a, c_0)$ $\land$ HaySiguiente($res$) $\land_L$ Siguiente($res$) $=$ $a$ $\land$ alias(esPermutacion?(SecuSuby($res$), $c$))}
+  [$\Theta\left(\displaystyle\sum_{a' \in c}equal(a,a')\right)$]
+  [agrega el elemento $a$ al conjunto.  Para poder acceder al elemento $a$ en $O(1)$, se devuelve un iterador a la posición de $a$ dentro de $c$.]
+  [el elemento $a$ se agrega por copia.  El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.  Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique $c$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{AgregarRapido}{\Inout{c}{conj($\alpha$)}, \In{a}{$\alpha$}}{itConj($\alpha$)}
+  [$c \igobs c_0$ $\land$ $a \not\in c$]
+  {$c \igobs Ag(a, c_0)$ $\land$ HaySiguiente($res$) $\land_L$ Siguiente($res$) $=$ $a$ $\land$ alias(esPermutacion?(SecuSuby($res$), $c$))}
+  [$\Theta(copy(a))$]
+  [agrega el elemento $a \not\in c$ al conjunto. Para poder acceder al elemento $a$ en $O(1)$, se devuelve un iterador a la posición de $a$ dentro de $c$.]
+  [el elemento $a$ se agrega por copia.  El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.  Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique $c$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{EsVacío?}{\In{c}{conj($\alpha$)}}{bool}
+  {$res$ $\igobs$ $\emptyset$?($c$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si $c$ esta vacío.]
+
+  \InterfazFuncion{Pertenece?}{\In{c}{conj($\alpha$)}, \In{a}{$\alpha$}}{bool}
+  {$res$ $\igobs$ $a \in c$)}
+  [$\Theta\left(\displaystyle\sum_{a' \in c}equal(a,a')\right)$]
+  [devuelve \texttt{true} si y sólo $a$ pertenece al conjunto.]
+
+  \InterfazFuncion{Eliminar}{\In{c}{conj($\alpha$)}, \In{a}{$\alpha$}}{}
+  {$res$ $\igobs$ $c \setminus \{a\}$)}
+  [$\Theta\left(\displaystyle\sum_{a' \in c}equal(a,a')\right)$]
+  [elimina $a$ de $c$, si es que estaba.]
+
+  \InterfazFuncion{Cardinal}{\In{c}{conj($\alpha$)}}{nat}
+  {$res$ $\igobs$ $\#c$)}
+  [$\Theta(1)$]
+  [devuelve la cantidad de elementos del conjunto.]
+
+  \InterfazFuncion{Copiar}{\In{c}{conj($\alpha$)}}{conj($\alpha$)}
+  {$res \igobs c$}
+  [$\displaystyle\Theta\left(\sum_{a \in c}copy(a)\right)$]
+  [genera una copia nueva del conjunto.]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{c_1}{conj($\alpha$)}, \In{c_2}{conj($\alpha$)}}{bool}
+  {$res \igobs c_1 = c_2$}
+  [$\displaystyle O\left(\sum_{a_1 \in c_1}\sum_{a_2\in c_2}equal(a_1,a_2)\right)$.]
+  [compara $c_1$ y $c_2$ por igualdad.]
+
+
+
+  \Titulo{Operaciones del iterador}
+
+  El iterador que presentamos permite modificar el conjunto recorrido, eliminando elementos.  Sin embargo, cuando el conjunto es no modificable, no se pueden utilizar las funciones de eliminación.  Además, los elementos iterados no pueden modificarse, por cuestiones de implementación.
+
+  \InterfazFuncion{CrearIt}{\In{c}{conj($\alpha$)}}{itConj($\alpha$)}
+  {alias(esPermutacion?(SecuSuby($res$), $c$)) $\land$ vacia?(Anteriores($res$))}
+  [$\Theta(1)$]
+  [crea un iterador bidireccional del conjunto, de forma tal que \NombreFuncion{HayAnterior} evalúe a \texttt{false} (i.e., que se pueda recorrer los elementos aplicando iterativamente \NombreFuncion{Siguiente}).]
+  [El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.  Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique $c$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{HaySiguiente}{\In{it}{itConj($\alpha$)}}{bool}
+  {$res$ $\igobs$ haySiguiente?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para avanzar.]
+
+  \InterfazFuncion{HayAnterior}{\In{it}{itConj($\alpha$)}}{bool}
+  {$res$ $\igobs$ hayAnterior?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para retroceder.]
+
+  \InterfazFuncion{Siguiente}{\In{it}{itConj($\alpha$)}}{$\alpha$}
+  [HaySiguiente?($it$)]
+  {alias($res$ $\igobs$ Siguiente($it$))}
+  [$\Theta(1)$]
+  [devuelve el elemento siguiente a la posición del iterador.]
+  [$res$ no es modificable.]
+
+
+  \InterfazFuncion{Anterior}{\In{it}{itConj($\alpha$)}}{$\alpha$}
+  [HayAnterior?($it$)]
+  {alias($res$ $\igobs$ Anterior($it$))}
+  [$\Theta(1)$]
+  [devuelve el elemento anterior a la posición del iterador.]
+  [$res$ no es modificable.]
+
+  \InterfazFuncion{Avanzar}{\Inout{it}{itConj($\alpha$)}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ Avanzar($it_0$)}
+  [$\Theta(1)$]
+  [Avanza a la posición siguiente del iterador.]
+
+  \InterfazFuncion{Retroceder}{\Inout{it}{itConj($\alpha$)}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ Retroceder($it_0$)}
+  [$\Theta(1)$]
+  [Retrocede a la posición anterior del iterador.]
+
+  \InterfazFuncion{EliminarSiguiente}{\Inout{it}{itConj($\alpha$)}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ EliminarSiguiente($it_0$)}
+  [$\Theta(1)$]
+  [Elimina de la lista iterada el valor que se encuentra en la posición siguiente del iterador.]
+
+  \InterfazFuncion{EliminarAnterior}{\Inout{it}{itConj($\alpha$)}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ EliminarAnterior($it_0$)}
+  [$\Theta(1)$]
+  [Elimina de la lista iterada el valor que se encuentra en la posición anterior del iterador.]
+
+  \Titulo{Especificación de las operaciones auxiliares utilizadas en la interfaz}
+
+  \begin{tad}{Conjunto Extendido($\alpha$)}
+    \parskip=0pt
+    \tadExtiende{\tadNombre{Conjunto($\alpha$)}}
+    
+    \tadTitulo{otras operaciones (no exportadas)}
+    \tadOperacion{esPermutacion?}{secu($\alpha$),conj($\alpha$)}{bool}{}
+    \tadOperacion{secuAConj}{secu($\alpha$)}{conj($\alpha$)}{}
+    \tadAxiomas
+    \tadAxioma{esPermutacion?($s,c$)}{$c$ $=$ secuAConj($s$) $\land$ $\#c$ $=$ long($s$)}
+    \tadAxioma{secuAConj($s$)}{\IF vacia?($s$) THEN $\emptyset$ ELSE Ag(prim($s$), secuAConj(fin($s$))) FI}
+  \end{tad}
+\end{Interfaz}
+
+\begin{Representacion}
+  
+  \Titulo{Representación del Conjunto}
+
+  En este módulo vamos a utilizar un diccionario lineal para representar el conjunto.  La idea es que el conjunto de claves del diccionario represente el conjunto lineal.  Si bien esta representación no es la más natural, permite resolver unas cuantas cuestiones sin duplicar codigo.  La desventaja aparente es que gastamos memoria para guardar datos inútiles.  Sin embargo, los lenguajes de programación actuales permiten resolver este problema de forma más o menos elegante.  A nosotros no nos va a importar.
+
+  \begin{Estructura}{conj$(\alpha)$}[dicc($\alpha$, bool)]
+  \end{Estructura}
+
+  \RepFc[dicc({$\alpha$,bool})][d]{true}
+
+  ~
+
+  \AbsFc[dicc({$\alpha$,bool})]{conj($\alpha$)}[d]{claves($d$)}
+
+  \Titulo{Representación del iterador}
+
+  El iterador del conjunto es simplemente un iterador del diccionario representante.
+
+  \begin{Estructura}{itConj$(\alpha)$}[itDicc($\alpha$, bool)]
+  \end{Estructura}
+
+  \RepFc[itDicc({$\alpha$, bool})][it]{true}
+
+  ~
+
+  \Abs[itDicc({$\alpha$, bool})]{itBi($\alpha$)}[it]{b}{Anteriores($b$) $=$ $\Pi_1$(Anteriores($it$)) $\land$ Siguientes($b$) $=$ $\Pi_1$(Siguientes($it$))}\mbox{}
+
+  ~
+
+  \tadOperacion{$\Pi_1$}{secu(tupla({$\alpha,\beta$}))}{secu($\alpha$)}{}
+  \tadAxioma{$\Pi_1(s)$}{\IF vacia?($s$) THEN \secuencia{} ELSE \secuencia{$\Pi_1$(prim($s$))}[$\Pi_1$(Fin($s$))] FI}
+
+\end{Representacion}
+
+\begin{Algoritmos}
+  
+\end{Algoritmos}
+
+
+
+\section{Módulo Conjunto acotado de naturales}
+
+El módulo conjunto acotado de naturales provee un conjunto en el que se pueden insertar únicamente los elementos que se encuentran en un rango $[\ell, r]$ de naturales.  La inserción, eliminación y testeo de pertenencia de un elemento se pueden resolver en tiempo constante.  El principal costo se paga cuando se crea la estructura, dado que cuesta tiempo lineal en $r - \ell$.
+
+En cuanto al recorrido de los elementos, se provee un iterador bidireccional que también permite eliminar los elementos iterados.
+
+{\parskip=2ex\noindent\Large \textbf{Especificación}\par}
+
+\begin{tad}{\tadNombre{Conjunto acotado}}
+  \parskip=0pt
+  \tadGeneros{conjAcotado}
+
+  {
+  \tadAnchoEncabezados=1em
+  \tadIgualdadObservacional{c_1}{c_2}{conjAcotado}{Infimo($c_1$) \igobs Infimo($c_2$) $\land$ Supremo($c_1$) \igobs Supremo($c_2$) $\land$\\ ConjSuby($c_1$) \igobs ConjSuby($c_2$)}
+  }
+
+  \tadObservadores
+  \tadAlinearFunciones{ConjSuby}{conjAcotado}
+  \tadOperacion{Infimo}{conjAcotado}{nat}{}
+  \tadOperacion{Supremo}{conjAcotado}{nat}{}
+  \tadOperacion{ConjSuby}{conjAcotado}{conj(nat)}{}
+
+  \tadGeneradores
+  \tadAlinearFunciones{Ag}{nat/e,conjAcotado/c}
+  \tadOperacion{$\emptyset$}{nat/\ell,nat/r}{conjAcotado}{$\ell \leq r$}
+  \tadOperacion{Ag}{nat/e,conjAcotado/c}{conjAcotado}{Infimo($c$) $\leq$ $e$ $\leq$ Supremo($c$)}
+
+  \tadOtrasOperaciones
+  \tadNoAlinearFunciones
+  \tadOperacion{Rango}{conjAcotado}{tupla(nat, nat)}{}
+
+  \tadAxiomas
+  \tadAlinearAxiomas{ConjSuby(Ag($e,c$))}
+  \tadAxioma{Infimo($\emptyset$($\ell, r$))}{$\ell$}
+  \tadAxioma{Infimo(Ag($e,c$))}{Infimo($c$)}
+  \tadAxioma{Supremo($\emptyset$($\ell, r$))}{$r$}
+  \tadAxioma{Supremo(Ag($e,c$))}{Supremo($c$)}
+  \tadAxioma{ConjSuby($\emptyset$($\ell, r$))}{$\emptyset$}
+  \tadAxioma{ConjSuby(Ag($e,c$))}{Ag($e$, ConjSuby($c$))}
+  \tadAxioma{Rango($c$)}{$\langle$Infimo($c$), Supremo($c$)$\rangle$}
+\end{tad}
+
+
+\begin{Interfaz}
+
+  \textbf{se explica con}: \tadNombre{Conjunto acotado}, \tadNombre{Iterador Bidireccional(nat)}.
+
+  \textbf{géneros}: \TipoVariable{conjAcotado}, \TipoVariable{itConjAcotado}.
+
+  \Titulo{Operaciones básicas de conjunto}
+
+  \InterfazFuncion{Vacío}{\In{\ell}{nat}, \In{r}{nat}}{conjAcotado}%
+  [$\ell \leq r$]%
+  {$res \igobs \emptyset(\ell,r)$}%
+  [$\Theta(r-\ell)$]
+  [genera un conjunto vacío con el rango $[\ell,r]$.]
+
+  \InterfazFuncion{Agregar}{\Inout{c}{conjAcotado}, \In{e}{nat}}{}
+  [$c \igobs c_0$ $\land$ Infimo($c$) $\leq$ $e$ $\leq$ Supremo($c$)]
+  {$c \igobs Ag(e, c_0)$}
+  [$\Theta(1)$]
+  [agrega el elemento $e$ al conjunto.]
+
+  \InterfazFuncion{Infimo}{\In{c}{conjAcotado}}{nat}
+  {$res$ $\igobs$ Infimo($c$)}
+  [$\Theta(1)$]
+  [devuelve el valor mínimo que se puede agregar al conjunto.]
+
+  \InterfazFuncion{Supremo}{\In{c}{conjAcotado}}{nat}
+  {$res$ $\igobs$ Supremo($c$)}
+  [$\Theta(1)$]
+  [devuelve el valor máximo que se puede agregar al conjunto.]
+
+  \InterfazFuncion{EsVacío?}{\In{c}{conjAcotado}}{bool}
+  {$res$ $\igobs$ $\emptyset$?(ConjSuby($c$))}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si $c$ esta vacío.]
+
+  \InterfazFuncion{Pertenece?}{\In{c}{conjAcotado}, \In{e}{nat}}{bool}
+  {$res$ $\igobs$ $e$ $\in$ ConjSuby($c$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo $e$ pertenece al conjunto.  Notar que no es requerido que $e$ pertenezca al rango de $c$.]
+
+  \InterfazFuncion{Eliminar}{\Inout{c}{conjAcotado}, \In{e}{nat}}{}
+  [$c = c_0$]
+  {ConjSuby($c$) \igobs ConjSuby($c_0$) $\setminus$ $\{e\}$ $\land$ Rango($c$) \igobs Rango($c_0$)}
+  [$\Theta(1)$]
+  [Elimina $a$ de $c$, si es que estaba.  Observar que no es requerido que $e$ pertenezca al rango de $c$.]
+
+  \InterfazFuncion{Cardinal}{\In{c}{conjAcotado}}{nat}
+  {$res$ $\igobs$ \#ConjSuby($c$)}
+  [$\Theta(1)$]
+  [Devuelve la cantidad de elementos del conjunto.]
+
+  \InterfazFuncion{Copiar}{\In{c}{conjAcotado}}{conjAcotado}
+  {$res \igobs c$}
+  [$\Theta$(Supremo($c$) - Infimo($c$))]
+  [genera una copia nueva del conjunto.]
+
+  \InterfazFuncion{$\bullet = \bullet$}{\In{c_1}{conjAcotado}, \In{c_2}{conjAcotado}}{bool}
+  {$res \igobs c_1 = c_2$}
+  [$\Theta(\min\{\#c_1, \#c_2\})$.]
+  [compara $c_1$ y $c_2$ por igualdad.]
+
+  \Titulo{Operaciones del iterador}
+
+  El iterador que presentamos permite modificar el conjunto recorrido, eliminando elementos.  Sin embargo, cuando el conjunto es no modificable, no se pueden utilizar las funciones de eliminación.  Todos los naturales del conjunto son iterados por copia.
+
+  \InterfazFuncion{CrearIt}{\In{c}{conjAcotado}}{itConjAcotado}
+  {alias(esPermutación?(SecuSuby($res$), ConjSuby($c$))) $\land$ vacia?(Anteriores($res$))}
+  [$\Theta(1)$]
+  [crea un iterador bidireccional del conjunto, de forma tal que \NombreFuncion{HayAnterior} evalúe a \texttt{false} (i.e., que se pueda recorrer los elementos aplicando iterativamente \NombreFuncion{Siguiente}).]
+  [El iterador se invalida si y sólo si se elimina el elemento siguiente del iterador sin utilizar la función \NombreFuncion{EliminarSiguiente}.  Además, anteriores($res$) y siguientes($res$) podrían cambiar completamente ante cualquier operación que modifique $c$ sin utilizar las funciones del iterador.]
+
+  \InterfazFuncion{HaySiguiente}{\In{it}{itConjAcotado}}{bool}
+  {$res$ $\igobs$ haySiguiente?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para avanzar.]
+
+  \InterfazFuncion{HayAnterior}{\In{it}{itConjAcotado}}{bool}
+  {$res$ $\igobs$ hayAnterior?($it$)}
+  [$\Theta(1)$]
+  [devuelve \texttt{true} si y sólo si en el iterador todavía quedan elementos para retroceder.]
+
+  \InterfazFuncion{Siguiente}{\In{it}{itConjAcotado}}{nat}
+  [HaySiguiente?($it$)]
+  {$res$ $\igobs$ Siguiente($it$)}
+  [$\Theta(1)$]
+  [devuelve el elemento siguiente a la posición del iterador.]
+  [$res$ se devuelve por copia.]
+
+  \InterfazFuncion{Anterior}{\In{it}{itConjAcotado}}{nat}
+  [HayAnterior?($it$)]
+  {$res$ $\igobs$ Anterior($it$)}
+  [$\Theta(1)$]
+  [devuelve el elemento anterior a la posición del iterador.]
+  [$res$ se devuelve por copia.]
+
+  \InterfazFuncion{Avanzar}{\Inout{it}{itConjAcotado}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ Avanzar($it_0$)}
+  [$\Theta(1)$]
+  [Avanza a la posición siguiente del iterador.]
+
+  \InterfazFuncion{Retroceder}{\Inout{it}{itConjAcotado}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ Retroceder($it_0$)}
+  [$\Theta(1)$]
+  [Retrocede a la posición anterior del iterador.]
+
+  \InterfazFuncion{EliminarSiguiente}{\Inout{it}{itConjAcotado}}{}
+  [$it = it_0$ $\land$ HaySiguiente?($it$)]
+  {$it$ $\igobs$ EliminarSiguiente($it_0$)}
+  [$\Theta(1)$]
+  [Elimina del conjunto el elemento que se encuentra en la posición siguiente.]
+
+  \InterfazFuncion{EliminarAnterior}{\Inout{it}{itConjAcotado}}{}
+  [$it = it_0$ $\land$ HayAnterior?($it$)]
+  {$it$ $\igobs$ EliminarAnterior($it_0$)}
+  [$\Theta(1)$]
+  [Elimina del conjunto el elemento que se encuentra en la posición anterior.]
+
+\end{Interfaz}
+
+\begin{Representacion}
+
+  \Titulo{Representación del Conjunto}
+  
+  La idea de este módulo es aprovechar que los elementos que se pueden llegar a agregar son naturales en un rango que se conoce desde el inicio, de forma tal de poder acceder a ellos en tiempo $O(1)$.  Para esto, podemos tener un arreglo $a$ de booleanos de tamaño $r - \ell + 1$ de forma tal que $\ell \leq e \leq r$ pertenezca al conjunto si y sólo si $a$[$e-\ell$] $=$ true.  El inconveniente de esta representación es que no permite iterar todos los elementos en tiempo lineal en la cantidad de elementos del conjunto.  En efecto, si el conjunto tiene un único elemento $e$, igual tenemos que recorrer todo el rango $r - \ell$ (que no es constante) para encontrar $e$.  Para subsanar este inconveniente, vamos a guardar un conjunto lineal $c$ con los elementos que pertenecen al conjunto acotado.  Para poder eliminar el elemento $e$, debemos poner en false el valor de $a$[$e-\ell$], a la vez que tenemos que eliminar a $c$ del conjunto.  Esto se puede hacer en tiempo $O(1)$ si podemos obtener eficientemente un ``puntero'' a $e$ dentro de $c$.  Este puntero podría ser un iterador.  Luego, en $a$ vamos a tener, ademas del booleano, un iterador al conjunto $c$ que nos permita acceder en $O(1)$ a $e$ dentro de $c$.  Una mejora a esta estructura es eliminar el booleano de $a$, y considerar que $e$ pertenece al conjunto acotado si y sólo si el iterador de $a$[$e - \ell$] tiene un elemento siguiente.  Este elemento siguiente contiene a $e$ en $c$.
+
+  \begin{Estructura}{conjAcotado}[ca]
+    \begin{Tupla}[ca]%
+      \tupItem{pertenencia}{arreglo\_dimensionable de iterConj(nat)}%
+      \tupItem[\\]{elementos}{conj(nat)}%
+      \tupItem{infimo}{nat}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[ca][c]{($\forall e$: nat)($e$ $\in$ $c$.elementos $\ssi$ $e$ $\geq$ $c$.infimo $\land$ $e$ $<$ $c$.infimo $+$ tam($c$.pertenencia) $\yluego$\\ HaySiguiente?($c$.pertenencia[$e$ $-$ $c$.infimo])) $\yluego$\\ 
+  ($\forall e$: nat)($e$ $\in$ $c$.elementos $\impluego$ Siguiente($c$.pertenencia[$e$ $-$ $c$.infimo]) $=$ $e$)}\mbox{}
+
+  ~
+
+  \Abs[ca]{conjAcotado}[e]{c}{Infimo($c$) $=$ $e$.infimo $\land$ Supremo($c$) $=$ $e$.infimo $+$ tam($e$.pertenencia) $-$ $1$ $\land$\\ ConjSuby($c$) $=$ $e$.elementos}
+
+
+  \Titulo{Representación del iterador}
+
+  El iterador del conjunto acotado es simplemente un iterador del conjunto \textit{elementos}, ya que con éste recorremos todos los elementos, más un puntero a la estructura del conjunto, para poder borrar al eliminar el iterador.  
+
+  \begin{Estructura}{itConjAcotado}[itCA]
+    \begin{Tupla}[itCA]%
+      \tupItem{iter}{itConj(nat)}%
+      \tupItem{conj}{puntero(ca)}%
+    \end{Tupla}
+  \end{Estructura}
+
+  \Rep[itCA][it]{Rep($\ast it$.conj) $\land$ EsPermutacion(SecuSuby($it$.iter), $it$.conj\DRef elementos) }
+
+  ~
+
+  \AbsFc[itCA]{itBi(nat)}[it]{$it$.elementos}
+
+
+\end{Representacion}
+
+\begin{Algoritmos}
+  
+\end{Algoritmos}
+
+
+\end{document}
