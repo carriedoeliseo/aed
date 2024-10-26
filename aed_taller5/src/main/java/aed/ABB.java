@@ -196,20 +196,10 @@ public class ABB<T extends Comparable<T>> implements Conjunto<T> {
 
                 } else if (this.raiz.izq != null && this.raiz.der != null) {
                     if (this.raiz.arriba != null) {
-                        if (this.raiz.valor.compareTo(this.raiz.arriba.raiz.valor) < 0) {
-                            T sucesor = this.sucesor();
-                            this.eliminar(this.sucesor());
-                            this.raiz.valor = sucesor;
-                            this.raiz.arriba.raiz.izq.raiz.valor = sucesor;
+                        T sucesor = this.sucesor();
+                        this.eliminar(this.sucesor());
+                        this.raiz.valor = sucesor;
 
-                        } else {
-                            T sucesor = this.sucesor();
-                            this.eliminar(this.sucesor());
-                            this.raiz.valor = sucesor;
-                            this.raiz.arriba.raiz.der.raiz.valor = sucesor;
-                            
-
-                        }
                     } else {
                         T sucesor = this.sucesor();
                         this.eliminar(this.sucesor());
